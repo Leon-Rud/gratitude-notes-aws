@@ -20,9 +20,10 @@ flowchart LR
   end
 
   %% --- Delivery (Mission 2) ---
-  subgraph Delivery
+  subgraph Delivery["Mission 2 - Delivery"]
     CF["CloudFront distribution"]
     S3["S3 static site"]
+    CF --> S3
   end
 
   %% --- Backend (Mission 1) ---
@@ -32,31 +33,32 @@ flowchart LR
     GetFn["Lambda Read"]
     DelFn["Lambda Delete"]
     Dynamo["DynamoDB table: customer_ids"]
+    APIGW --> PutFn
+    APIGW --> GetFn
+    APIGW --> DelFn
+    PutFn --> Dynamo
+    GetFn --> Dynamo
+    DelFn --> Dynamo
   end
 
   %% --- Workflow (Mission 3) ---
   subgraph Workflow["Mission 3 - Workflow"]
-    EB["EventBridge"]
+    EB["EventBridge (rule: customer-id.submitted)"]
     SFN["Step Functions: customer-id-workflow"]
     Val["Lambda Validate"]
     Ins["Lambda Insert"]
     Log["Lambda Log existing"]
+    EB --> SFN --> Val
+    Val -- "exists: false" --> Ins --> Dynamo
+    Val -- "exists: true" --> Log
+    Sched["EventBridge Schedule (6h)"] -.-> EB
   end
 
-  %% Connections
+  %% Connections between areas
   User --> App
-  App -->|PUT/GET/DELETE| APIGW
-  APIGW --> PutFn
-  APIGW --> GetFn
-  APIGW --> DelFn
-  PutFn --> Dynamo
-  GetFn --> Dynamo
-  DelFn --> Dynamo
-  PutFn -->|"PutEvents: id"| EB
-  EB --> SFN
-  SFN --> Val
-  Val -- exists:false --> Ins --> Dynamo
-  Val -- exists:true --> Log --> Dynamo
+  App -- "API key header" --> APIGW
+  App -. "served by" .-> CF
+  PutFn -- "PutEvents { id }" --> EB
 ```
 
 
