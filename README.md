@@ -228,45 +228,45 @@ The workflow:
 flowchart LR
   %% --- Client ---
   subgraph Client
-    U[User]
-    App[React SPA (client)]
+    User
+    App["React SPA (client)"]
   end
 
   %% --- Delivery (Mission 2) ---
   subgraph Delivery
-    CF[CloudFront distribution]
-    S3[(S3 static site)]
+    CF["CloudFront distribution"]
+    S3["S3 static site"]
   end
 
   %% --- Backend (Mission 1) ---
   subgraph Backend["Mission 1 - API"]
-    APIGW[API Gateway /customer-ids]
-    PutFn[Lambda Create]
-    GetFn[Lambda Read]
-    DelFn[Lambda Delete]
-    Dynamo[(DynamoDB table: customer_ids)]
+    APIGW["API Gateway /customer-ids"]
+    PutFn["Lambda Create"]
+    GetFn["Lambda Read"]
+    DelFn["Lambda Delete"]
+    Dynamo["DynamoDB table: customer_ids"]
   end
 
   %% --- Workflow (Mission 3) ---
   subgraph Workflow["Mission 3 - Workflow"]
-    EB[(EventBridge)]
-    SFN[[Step Functions: customer-id-workflow]]
-    Val[Lambda Validate]
-    Ins[Lambda Insert]
-    Log[Lambda Log existing]
+    EB["EventBridge"]
+    SFN["Step Functions: customer-id-workflow"]
+    Val["Lambda Validate"]
+    Ins["Lambda Insert"]
+    Log["Lambda Log existing"]
   end
 
-  %% --- Edges ---
-  U --> App
-  App --> CF --> S3
-  App -- HTTP + x-api-key --> APIGW
-  APIGW -->|PUT| PutFn
-  APIGW -->|GET| GetFn
-  APIGW -->|DELETE| DelFn
-  PutFn -->|PutEvents: detail {id}| EB --> SFN
+  %% Connections
+  User --> App
+  App -->|PUT/GET/DELETE| APIGW
+  APIGW --> PutFn
+  APIGW --> GetFn
+  APIGW --> DelFn
+  PutFn -->|PutEvents { id }| EB
+  EB --> SFN
   SFN --> Val
-  Val -- exists? yes --> Log
-  Val -- exists? no --> Ins --> Dynamo
+  Val -- exists:false --> Ins --> Dynamo
+  Val -- exists:true --> Log
 ```
 
 **Stack outputs**
