@@ -10,10 +10,9 @@ End-to-end cloud-native solution for managing customer IDs across three missions
 ## Architecture diagram
 ```mermaid
 flowchart TB
-%% =======================
-%% Frontend (Mission 2)
-%% =======================
-subgraph Frontend["Mission 2 – Frontend"]
+
+%% ========== Frontend (Mission 2) ==========
+subgraph Frontend["Mission 2 - Frontend"]
   CF[CloudFront distribution]
   S3[(S3 static site)]
   App[React SPA (client)]
@@ -21,24 +20,23 @@ subgraph Frontend["Mission 2 – Frontend"]
   CF -. serves .-> App
 end
 
-%% =======================
-%% API (Mission 1)
-%% =======================
-subgraph API["Mission 1 – API"]
+%% =========== API (Mission 1) ===========
+subgraph API["Mission 1 - API"]
   APIGW[API Gateway /customer-ids]
   PUT[Lambda: Create]
   GET[Lambda: Read]
   DEL[Lambda: Delete]
   DB[(DynamoDB: customer_ids)]
-  APIGW -->|PUT| PUT --> DB
-  APIGW -->|GET| GET --> DB
-  APIGW -->|DELETE| DEL --> DB
+  APIGW -->|PUT| PUT
+  APIGW -->|GET| GET
+  APIGW -->|DELETE| DEL
+  PUT --> DB
+  GET --> DB
+  DEL --> DB
 end
 
-%% =======================
-%% Workflow (Mission 3)
-%% =======================
-subgraph Workflow["Mission 3 – Workflow"]
+%% ======== Workflow (Mission 3) =========
+subgraph Workflow["Mission 3 - Workflow"]
   Rule[EventBridge rule\nsource=mission1.customer-ids\ndetail-type=customer-id.submitted]
   SFN[[Step Functions: customer-id-workflow]]
   VAL([Validate ID])
@@ -51,22 +49,17 @@ subgraph Workflow["Mission 3 – Workflow"]
   CH -- no --> INS
 end
 
-%% =======================
-%% Monitoring / Observability
-%% =======================
+%% =========== Monitoring ===========
 subgraph Monitoring["Observability"]
   Logs[CloudWatch Logs]
   Alarm[CloudWatch Alarm\nExecutionsFailed >= 1]
 end
 
-%% User path & API calls
 User([User]) --> CF
 App -->|REST (x-api-key)| APIGW
+PUT -. PutEvents id .-> Rule
 
-%% Event flow from Create -> EventBridge
-PUT -. PutEvents { id } .-> Rule
-
-%% Logs/metrics (dashed so they don't dominate the flow)
+%% dashed observability links
 SFN -. logs/metrics .-> Logs
 PUT -. logs .-> Logs
 GET -. logs .-> Logs
