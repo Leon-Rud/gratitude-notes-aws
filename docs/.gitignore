@@ -1,0 +1,4 @@
+# Ignore temporary files in docs
+.DS_Store
+Thumbs.db
+*.tmp

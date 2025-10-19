@@ -1,0 +1,351 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Mission 1 - Minimal customer ID management API with API key protection.
+
+Globals:
+  Function:
+    Runtime: python3.13
+    Timeout: 10
+    MemorySize: 256
+    Environment:
+      Variables:
+        CUSTOMER_IDS_TABLE: !Ref CustomerTable
+
+Resources:
+  CustomerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: customer_ids
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CustomerIdsApi
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'GET,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'*'"
+
+  PutFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdCreateFunction
+      Description: Create customer IDs with conditional writes.
+      Handler: api.put_customer_id.handler
+      CodeUri: ../lambdas
+      Environment:
+        Variables:
+          EVENT_BUS_NAME: default
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomerTable
+        - EventBridgePutEventsPolicy:
+            EventBusName: default
+      Events:
+        PutCustomer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /customer-ids
+            Method: put
+            Auth:
+              ApiKeyRequired: true
+
+  GetFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdReadFunction
+      Description: Check whether a customer ID exists.
+      Handler: api.get_customer_id.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CustomerTable
+      Events:
+        GetCustomer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /customer-ids/{id}
+            Method: get
+            Auth:
+              ApiKeyRequired: true
+
+  DeleteFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdDeleteFunction
+      Description: Delete customer IDs when present.
+      Handler: api.delete_customer_id.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomerTable
+      Events:
+        DeleteCustomer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /customer-ids/{id}
+            Method: delete
+            Auth:
+              ApiKeyRequired: true
+
+  StepValidateFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdValidateFunction
+      Description: Step Function task that validates whether a customer ID already exists.
+      Handler: steps.step_validate_customer_id.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CustomerTable
+
+  StepInsertFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdInsertFunction
+      Description: Step Function task that inserts a new customer ID when missing.
+      Handler: steps.step_insert_customer_id.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomerTable
+
+  StepLogFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CustomerIdLogFunction
+      Description: Step Function task that records existing customer IDs for observability.
+      Handler: steps.step_log_customer_event.handler
+      CodeUri: ../lambdas
+
+  DevApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: Mission1DevKey
+      Description: Hard-coded key for quick manual testing.
+      Enabled: true
+      Value: test-key-123-0000000000
+
+  ApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - ApiprodStage
+    Properties:
+      UsagePlanName: Mission1DevUsagePlan
+      Throttle:
+        RateLimit: 5
+        BurstLimit: 10
+      ApiStages:
+        - ApiId: !Ref Api
+          Stage: prod
+
+  ApiUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref DevApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref ApiUsagePlan
+
+  CustomerIdWorkflowLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-customer-id-workflow
+      RetentionInDays: 30
+
+  CustomerIdWorkflowLogsPolicy:
+    Type: AWS::Logs::ResourcePolicy
+    Properties:
+      PolicyName: !Sub ${AWS::StackName}-customer-id-workflow-logs
+      PolicyDocument: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowStepFunctionsToWriteLogs",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com"
+              },
+              "Action": [
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:DescribeLogGroups",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-customer-id-workflow:*"
+            }
+          ]
+        }
+
+  CustomerIdWorkflow:
+    Type: AWS::Serverless::StateMachine
+    DependsOn:
+      - CustomerIdWorkflowLogGroup
+      - CustomerIdWorkflowLogsPolicy
+    Properties:
+      Name: !Sub ${AWS::StackName}-customer-id-workflow
+      Definition:
+        Comment: Process new customer ID events and persist them conditionally.
+        StartAt: ValidateCustomer
+        States:
+          ValidateCustomer:
+            Type: Task
+            Resource: ${ValidateFnArn}
+            ResultPath: "$"
+            Next: DecideNextStep
+          DecideNextStep:
+            Type: Choice
+            Choices:
+              - Variable: $.valid
+                BooleanEquals: false
+                Next: InvalidPayload
+              - Variable: $.exists
+                BooleanEquals: true
+                Next: LogExistingCustomer
+              - Variable: $.exists
+                BooleanEquals: false
+                Next: InsertCustomer
+            Default: InvalidPayload
+          LogExistingCustomer:
+            Type: Task
+            Resource: ${LogFnArn}
+            ResultPath: "$"
+            End: true
+          InsertCustomer:
+            Type: Task
+            Resource: ${InsertFnArn}
+            ResultPath: "$"
+            End: true
+          InvalidPayload:
+            Type: Fail
+            Error: InvalidCustomerIdPayload
+            Cause: Workflow received unexpected payload data.
+      DefinitionSubstitutions:
+        ValidateFnArn: !GetAtt StepValidateFn.Arn
+        LogFnArn: !GetAtt StepLogFn.Arn
+        InsertFnArn: !GetAtt StepInsertFn.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StepValidateFn
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StepLogFn
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StepInsertFn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogDelivery
+                - logs:GetLogDelivery
+                - logs:UpdateLogDelivery
+                - logs:DeleteLogDelivery
+                - logs:ListLogDeliveries
+                - logs:DescribeLogGroups
+                - logs:DescribeResourcePolicies
+                - logs:PutResourcePolicy
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - logs:DescribeLogStreams
+              Resource: "*"
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CustomerIdWorkflowLogGroup.Arn
+        IncludeExecutionData: true
+        Level: ALL
+      Tracing:
+        Enabled: true
+      Events:
+        ScheduledScan:
+          Type: Schedule
+          Properties:
+            Name: !Sub ${AWS::StackName}-scheduled-scan
+            Description: Periodic run of the customer ID workflow
+            Schedule: rate(6 hours)
+            Enabled: true
+            Input: '{"id":"SCHEDULED-SCAN-001"}'
+
+  EventBridgeInvokeStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StartWorkflowExecution
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource: !GetAtt CustomerIdWorkflow.Arn
+
+  CustomerCreatedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${AWS::StackName}-customer-created
+      EventBusName: default
+      EventPattern:
+        source:
+          - mission1.customer-ids
+        detail-type:
+          - customer-id.submitted
+      Targets:
+        - Arn: !GetAtt CustomerIdWorkflow.Arn
+          Id: CustomerWorkflowTarget
+          RoleArn: !GetAtt EventBridgeInvokeStateMachineRole.Arn
+          InputPath: "$.detail"
+
+  CustomerWorkflowFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-customer-workflow-failures
+      AlarmDescription: Alarm when Step Function executions fail.
+      Namespace: AWS/States
+      MetricName: ExecutionsFailed
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !GetAtt CustomerIdWorkflow.Arn
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  ApiBaseUrl:
+    Description: Invoke this base URL with the API key to test.
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod
+  ApiKeyForTesting:
+    Description: Pre-provisioned API key for quick manual testing.
+    Value: test-key-123-0000000000
+  CustomerWorkflowArn:
+    Description: Step Functions state machine ARN for Mission 3 workflow.
+    Value: !GetAtt CustomerIdWorkflow.Arn
+  CustomerCreatedRuleName:
+    Description: EventBridge rule that triggers the workflow when IDs are created.
+    Value: !Ref CustomerCreatedRule
+  CustomerWorkflowFailureAlarmName:
+    Description: CloudWatch alarm monitoring workflow failures.
+    Value: !Ref CustomerWorkflowFailureAlarm
