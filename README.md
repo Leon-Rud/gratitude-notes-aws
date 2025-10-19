@@ -229,7 +229,7 @@ flowchart LR
   %% --- Client ---
   subgraph Client
     U[User]
-    App[React SPA<br/>(client)]
+    App[React SPA (client)]
   end
 
   %% --- Delivery (Mission 2) ---
@@ -239,21 +239,21 @@ flowchart LR
   end
 
   %% --- Backend (Mission 1) ---
-  subgraph Backend["Mission 1 – API"]
-    APIGW[API Gateway<br/>/customer-ids]
-    PutFn[Lambda<br/>Create]
-    GetFn[Lambda<br/>Read]
-    DelFn[Lambda<br/>Delete]
-    Dynamo[(DynamoDB<br/>table: customer_ids)]
+  subgraph Backend["Mission 1 - API"]
+    APIGW[API Gateway /customer-ids]
+    PutFn[Lambda Create]
+    GetFn[Lambda Read]
+    DelFn[Lambda Delete]
+    Dynamo[(DynamoDB table: customer_ids)]
   end
 
   %% --- Workflow (Mission 3) ---
-  subgraph Workflow["Mission 3 – Workflow"]
+  subgraph Workflow["Mission 3 - Workflow"]
     EB[(EventBridge)]
-    SFN[[Step Functions<br/>customer-id-workflow]]
-    Val[Lambda<br/>Validate]
-    Ins[Lambda<br/>Insert]
-    Log[Lambda<br/>Log existing]
+    SFN[[Step Functions: customer-id-workflow]]
+    Val[Lambda Validate]
+    Ins[Lambda Insert]
+    Log[Lambda Log existing]
   end
 
   %% --- Edges ---
@@ -263,7 +263,7 @@ flowchart LR
   APIGW -->|PUT| PutFn
   APIGW -->|GET| GetFn
   APIGW -->|DELETE| DelFn
-  PutFn -->|PutEvents: detail { id }| EB --> SFN
+  PutFn -->|PutEvents: detail {id}| EB --> SFN
   SFN --> Val
   Val -- exists? yes --> Log
   Val -- exists? no --> Ins --> Dynamo
