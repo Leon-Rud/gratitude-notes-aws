@@ -6,6 +6,65 @@ End-to-end cloud-native solution for managing customer IDs across three missions
 2. **Mission 2** – React + Vite frontend (S3 + CloudFront)
 3. **Mission 3** – Event-driven workflow (EventBridge + Step Functions)
 
+
+## Architecture diagram
+```mermaid
+flowchart LR
+  %% --- Client ---
+  subgraph Client
+    User
+    App["React SPA (client)"]
+  end
+
+  %% --- Delivery (Mission 2) ---
+  subgraph Delivery
+    CF["CloudFront distribution"]
+    S3["S3 static site"]
+  end
+
+  %% --- Backend (Mission 1) ---
+  subgraph Backend["Mission 1 - API"]
+    APIGW["API Gateway /customer-ids"]
+    PutFn["Lambda Create"]
+    GetFn["Lambda Read"]
+    DelFn["Lambda Delete"]
+    Dynamo["DynamoDB table: customer_ids"]
+  end
+
+  %% --- Workflow (Mission 3) ---
+  subgraph Workflow["Mission 3 - Workflow"]
+    EB["EventBridge"]
+    SFN["Step Functions: customer-id-workflow"]
+    Val["Lambda Validate"]
+    Ins["Lambda Insert"]
+    Log["Lambda Log existing"]
+  end
+
+  %% --- Observability ---
+  subgraph Observability
+    CWLogs["CloudWatch Logs"]
+    CWMetrics["CloudWatch Metrics + Alarm"]
+  end
+
+  User --> CF
+  CF --> App
+  CF --> S3
+  App -->|PUT/GET/DELETE| APIGW
+  APIGW --> PutFn
+  APIGW --> GetFn
+  APIGW --> DelFn
+  PutFn --> Dynamo
+  GetFn --> Dynamo
+  DelFn --> Dynamo
+  PutFn -->|"PutEvents: id"| EB
+  Rule --> EB
+  EB --> SFN
+  SFN --> Val
+  Val -- exists:false --> Ins --> Dynamo
+  Val -- exists:true --> Log
+
+```
+
 ## Repository layout
 
 - `server/` – backend SAM project (`infra/template.yaml`, Lambda sources, tests)
@@ -262,11 +321,14 @@ flowchart LR
   APIGW --> PutFn
   APIGW --> GetFn
   APIGW --> DelFn
+  PutFn --> Dynamo
+  GetFn --> Dynamo
+  DelFn --> Dynamo
   PutFn -->|"PutEvents: id"| EB
   EB --> SFN
   SFN --> Val
   Val -- exists:false --> Ins --> Dynamo
-  Val -- exists:true --> Log
+  Val -- exists:true --> Log --> Dynamo
 ```
 
 **Stack outputs**
