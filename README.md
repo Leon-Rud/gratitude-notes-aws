@@ -228,34 +228,34 @@ The workflow:
 flowchart LR
   subgraph Client
     User[(User)]
-    App[React SPA\n(client)]
+    App[React SPA<br/>(client)]
   end
 
   subgraph Delivery
-    CF[CloudFront\nDistribution]
-    Static[(S3\nStatic Site)]
+    CF[CloudFront<br/>Distribution]
+    Static[(S3<br/>Static Site)]
   end
 
   subgraph Backend["Mission 1 – API"]
-    APIGW[API Gateway\ncustomer-ids]
-    PutFn[Lambda\nCreate]
-    GetFn[Lambda\nRead]
-    DeleteFn[Lambda\nDelete]
-    Dynamo[(DynamoDB\ntable: customer_ids)]
+    APIGW[API Gateway<br/>customer-ids]
+    PutFn[Lambda<br/>Create]
+    GetFn[Lambda<br/>Read]
+    DeleteFn[Lambda<br/>Delete]
+    Dynamo[(DynamoDB<br/>table: customer_ids)]
   end
 
   subgraph Workflow["Mission 3 – Event Driven"]
-    EB[(EventBridge\nDefault bus)]
-    Rule[Scheduled Rule\nrate(6h)]
-    SFN[[Step Functions\ncustomer-id-workflow]]
-    Validate[Lambda\nValidateCustomer]
-    Insert[Lambda\nInsertCustomer]
-    LogExisting[Lambda\nLogExistingCustomer]
+    EB[(EventBridge<br/>Default bus)]
+    Rule[Scheduled Rule<br/>rate(6h)]
+    SFN[[Step Functions<br/>customer-id-workflow]]
+    Validate[Lambda<br/>ValidateCustomer]
+    Insert[Lambda<br/>InsertCustomer]
+    LogExisting[Lambda<br/>LogExistingCustomer]
   end
 
   subgraph Observability
     CWLogs[(CloudWatch Logs)]
-    CWMetrics[(CloudWatch Metrics\n+ Alarm)]
+    CWMetrics[(CloudWatch Metrics<br/>+ Alarm)]
   end
 
   User --> App
