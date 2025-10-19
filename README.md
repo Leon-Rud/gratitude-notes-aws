@@ -8,64 +8,57 @@ End-to-end cloud-native solution for managing customer IDs across three missions
 
 
 ## Architecture diagram
+
+### Architecture (end-to-end)
+
 ```mermaid
-flowchart TB
+flowchart LR
+  %% --- Client ---
+  subgraph Client
+    User
+    App["React SPA client"]
+  end
 
-%% ========== Frontend (Mission 2) ==========
-subgraph Frontend["Mission 2 - Frontend"]
-  CF[CloudFront distribution]
-  S3[(S3 static site)]
-  App[React SPA (client)]
-  CF --> S3
-  CF -. serves .-> App
-end
+  %% --- Delivery (Mission 2) ---
+  subgraph Delivery
+    CF["CloudFront distribution"]
+    S3["S3 static site"]
+  end
 
-%% =========== API (Mission 1) ===========
-subgraph API["Mission 1 - API"]
-  APIGW[API Gateway /customer-ids]
-  PUT[Lambda: Create]
-  GET[Lambda: Read]
-  DEL[Lambda: Delete]
-  DB[(DynamoDB: customer_ids)]
-  APIGW -->|PUT| PUT
-  APIGW -->|GET| GET
-  APIGW -->|DELETE| DEL
-  PUT --> DB
-  GET --> DB
-  DEL --> DB
-end
+  %% --- Backend (Mission 1) ---
+  subgraph Backend["Mission 1 - API"]
+    APIGW["API Gateway /customer-ids"]
+    PutFn["Lambda Create"]
+    GetFn["Lambda Read"]
+    DelFn["Lambda Delete"]
+    Dynamo["DynamoDB table: customer_ids"]
+  end
 
-%% ======== Workflow (Mission 3) =========
-subgraph Workflow["Mission 3 - Workflow"]
-  Rule[EventBridge rule\nsource=mission1.customer-ids\ndetail-type=customer-id.submitted]
-  SFN[[Step Functions: customer-id-workflow]]
-  VAL([Validate ID])
-  CH{exists?}
-  LOG([Log existing])
-  INS([Insert into table])
-  Rule --> SFN
-  SFN --> VAL --> CH
-  CH -- yes --> LOG
-  CH -- no --> INS
-end
+  %% --- Workflow (Mission 3) ---
+  subgraph Workflow["Mission 3 - Workflow"]
+    EB["EventBridge"]
+    SFN["Step Functions: customer-id-workflow"]
+    Val["Lambda Validate"]
+    Ins["Lambda Insert"]
+    Log["Lambda Log existing"]
+  end
 
-%% =========== Monitoring ===========
-subgraph Monitoring["Observability"]
-  Logs[CloudWatch Logs]
-  Alarm[CloudWatch Alarm\nExecutionsFailed >= 1]
-end
-
-User([User]) --> CF
-App -->|REST (x-api-key)| APIGW
-PUT -. PutEvents id .-> Rule
-
-%% dashed observability links
-SFN -. logs/metrics .-> Logs
-PUT -. logs .-> Logs
-GET -. logs .-> Logs
-DEL -. logs .-> Logs
-SFN -. metrics .-> Alarm
+  %% Connections
+  User --> App
+  App -->|PUT/GET/DELETE| APIGW
+  APIGW --> PutFn
+  APIGW --> GetFn
+  APIGW --> DelFn
+  PutFn --> Dynamo
+  GetFn --> Dynamo
+  DelFn --> Dynamo
+  PutFn -->|"PutEvents: id"| EB
+  EB --> SFN
+  SFN --> Val
+  Val -- exists:false --> Ins --> Dynamo
+  Val -- exists:true --> Log --> Dynamo
 ```
+
 
 ## Repository layout
 
@@ -282,56 +275,6 @@ The workflow:
 1. validates the ID (format + existence),
 2. **logs** if it already exists, or
 3. **inserts** it into DynamoDB if it does not.
-
-### Architecture (end-to-end)
-
-```mermaid
-flowchart LR
-  %% --- Client ---
-  subgraph Client
-    User
-    App["React SPA (client)"]
-  end
-
-  %% --- Delivery (Mission 2) ---
-  subgraph Delivery
-    CF["CloudFront distribution"]
-    S3["S3 static site"]
-  end
-
-  %% --- Backend (Mission 1) ---
-  subgraph Backend["Mission 1 - API"]
-    APIGW["API Gateway /customer-ids"]
-    PutFn["Lambda Create"]
-    GetFn["Lambda Read"]
-    DelFn["Lambda Delete"]
-    Dynamo["DynamoDB table: customer_ids"]
-  end
-
-  %% --- Workflow (Mission 3) ---
-  subgraph Workflow["Mission 3 - Workflow"]
-    EB["EventBridge"]
-    SFN["Step Functions: customer-id-workflow"]
-    Val["Lambda Validate"]
-    Ins["Lambda Insert"]
-    Log["Lambda Log existing"]
-  end
-
-  %% Connections
-  User --> App
-  App -->|PUT/GET/DELETE| APIGW
-  APIGW --> PutFn
-  APIGW --> GetFn
-  APIGW --> DelFn
-  PutFn --> Dynamo
-  GetFn --> Dynamo
-  DelFn --> Dynamo
-  PutFn -->|"PutEvents: id"| EB
-  EB --> SFN
-  SFN --> Val
-  Val -- exists:false --> Ins --> Dynamo
-  Val -- exists:true --> Log --> Dynamo
-```
 
 **Stack outputs**
 
