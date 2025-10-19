@@ -226,68 +226,47 @@ The workflow:
 
 ```mermaid
 flowchart LR
+  %% --- Client ---
   subgraph Client
-    User[(User)]
-    App[React SPA (client)]
+    U[User]
+    App[React SPA<br/>(client)]
   end
 
+  %% --- Delivery (Mission 2) ---
   subgraph Delivery
-    CF[CloudFront Distribution]
-    Static[(S3 Static Site)]
+    CF[CloudFront distribution]
+    S3[(S3 static site)]
   end
 
-  subgraph Backend["Mission 1 API"]
-    APIGW[API Gateway customer-ids]
-    PutFn[Lambda Create]
-    GetFn[Lambda Read]
-    DeleteFn[Lambda Delete]
-    Dynamo[(DynamoDB table: customer_ids)]
+  %% --- Backend (Mission 1) ---
+  subgraph Backend["Mission 1 – API"]
+    APIGW[API Gateway<br/>/customer-ids]
+    PutFn[Lambda<br/>Create]
+    GetFn[Lambda<br/>Read]
+    DelFn[Lambda<br/>Delete]
+    Dynamo[(DynamoDB<br/>table: customer_ids)]
   end
 
-  subgraph Workflow["Mission 3 Workflow"]
-    EB[(EventBridge Default bus)]
-    Rule[Scheduled Rule rate 6h]
-    SFN[[Step Functions customer-id-workflow]]
-    Validate[Lambda Validate]
-    Insert[Lambda Insert]
-    LogExisting[Lambda Log Existing]
+  %% --- Workflow (Mission 3) ---
+  subgraph Workflow["Mission 3 – Workflow"]
+    EB[(EventBridge)]
+    SFN[[Step Functions<br/>customer-id-workflow]]
+    Val[Lambda<br/>Validate]
+    Ins[Lambda<br/>Insert]
+    Log[Lambda<br/>Log existing]
   end
 
-  subgraph Observability
-    CWLogs[(CloudWatch Logs)]
-    CWMetrics[(CloudWatch Metrics + Alarm)]
-  end
-
-  User --> App
-  App --> CF --> Static
-  App -->|REST + API key| APIGW
-
-  APIGW -->|Invoke| PutFn
-  APIGW -->|Invoke| GetFn
-  APIGW -->|Invoke| DeleteFn
-
-  PutFn --> Dynamo
-  GetFn --> Dynamo
-  DeleteFn --> Dynamo
-
-  PutFn -->|customer-id.submitted| EB
-  Rule -->|Scheduled scan| EB
-  EB --> SFN
-
-  SFN --> Validate
-  Validate -->|exists:false| Insert --> Dynamo
-  Validate -->|exists:true| LogExisting
-  LogExisting --> SFN
-  Insert --> SFN
-
-  PutFn --> CWLogs
-  GetFn --> CWLogs
-  DeleteFn --> CWLogs
-  Validate --> CWLogs
-  Insert --> CWLogs
-  LogExisting --> CWLogs
-  Rule --> CWLogs
-  SFN --> CWMetrics
+  %% --- Edges ---
+  U --> App
+  App --> CF --> S3
+  App -- HTTP + x-api-key --> APIGW
+  APIGW -->|PUT| PutFn
+  APIGW -->|GET| GetFn
+  APIGW -->|DELETE| DelFn
+  PutFn -->|PutEvents: detail { id }| EB --> SFN
+  SFN --> Val
+  Val -- exists? yes --> Log
+  Val -- exists? no --> Ins --> Dynamo
 ```
 
 **Stack outputs**
