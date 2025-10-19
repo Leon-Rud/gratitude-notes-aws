@@ -262,7 +262,7 @@ flowchart LR
   APIGW --> PutFn
   APIGW --> GetFn
   APIGW --> DelFn
-  PutFn -->|PutEvents { id }| EB
+  PutFn -->|"PutEvents: id"| EB
   EB --> SFN
   SFN --> Val
   Val -- exists:false --> Ins --> Dynamo
