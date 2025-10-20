@@ -429,10 +429,3 @@ Shows the EventBridge rule that triggers the Step Functions workflow on new or s
 - Frontend type-check & build: `npm run build`
 - SAM template validation: `sam validate -t server/infra/template.yaml`
 
-## Cleanup
-
-```bash
-sam delete --stack-name customer-id-api-dev
-```
-
-For the frontend, empty or delete the S3 bucket configured in `scripts/deploy_frontend.sh` and disable/delete the associated CloudFront distribution to avoid charges.
