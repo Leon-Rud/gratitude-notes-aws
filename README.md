@@ -9,11 +9,9 @@ End-to-end cloud-native solution for managing customer IDs across three missions
 
 ## Architecture diagram
 
-### Architecture (end-to-end)
-
 ```mermaid
 flowchart LR
-  %% --- Client ---
+  %% --- Mission 2 - Client ---
   subgraph Client
     User
     App["React SPA client"]
@@ -66,7 +64,7 @@ flowchart LR
 
 - `server/` – backend SAM project (`infra/template.yaml`, Lambda sources, tests)
 - `client/` – React/Vite single-page app with Tailwind styling
-- `scripts/` – deployment helpers (`deploy_backend.sh`, `deploy_frontend.sh`, `capture_outputs.sh`, `put_test_event.sh`)
+- `scripts/` – deployment helpers (`deploy_backend.sh`, `deploy_frontend.sh`, `capture_outputs.sh`)
 - `docs/` – placeholder for diagrams/screenshots
 
 ## Prerequisites
@@ -352,13 +350,6 @@ This serves as a periodic **health check**, verifying that the EventBridge rule 
 - Step Functions → **Executions** → look for runs where the input `id` equals `SCHEDULED-SCAN-001`.
 - CloudWatch Logs → `/aws/vendedlogs/states/<stack>-customer-id-workflow` → confirm a `validate_id` entry with that ID.
 
-#### How to change the schedule rate
-
-- Open `server/infra/template.yaml` and edit  
-  `CustomerIdWorkflow.Events.ScheduledScan.Properties.Schedule`  
-  (for example: `rate(3 hours)` or `cron(0 6,12,18,0 * * ? *)`).
-- Redeploy with `./scripts/deploy_backend.sh`.
-
 ---
 
 ### Monitoring
@@ -394,7 +385,7 @@ fields @timestamp, action, id, valid, exists, @message
 
 ---
 
-## Monitoring Evidence
+## Monitoring Output
 
 ### Step Function execution graph
 
@@ -426,6 +417,9 @@ Demonstrates structured log entries produced by the workflow and Lambda function
 Shows the EventBridge rule that triggers the Step Functions workflow on new or scheduled events.
 
 ![EventBridge Rule](./docs/screenshots/eventbridge-rule.png)
+
+**Step Function ARN (from stack outputs)**
+`arn:aws:states:eu-west-1:520725971720:stateMachine:customer-id-api-dev-customer-id-workflow`
 
 ---
 
