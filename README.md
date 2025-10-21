@@ -111,7 +111,6 @@ Visit http://localhost:5173 (uses `.env.local` for API base URL and key). Produc
 - `deploy_backend.sh` – validate, build, deploy SAM stack
 - `deploy_frontend.sh` – build React app, upload to S3, invalidate CloudFront
 - `capture_outputs.sh` – export API base URL and key after deploy
-- `put_test_event.sh` – publish a synthetic EventBridge event for Mission 3
 
 ---
 
