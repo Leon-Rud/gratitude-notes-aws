@@ -3,11 +3,11 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline';
-import { Dispatch, SetStateAction } from 'react';
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { Dispatch, SetStateAction } from "react";
 
-export type StatusKind = 'success' | 'info' | 'warning' | 'error';
+export type StatusKind = "success" | "info" | "warning" | "error";
 
 export type StatusState = {
   kind: StatusKind;
@@ -21,13 +21,28 @@ type StatusBannerProps = {
 };
 
 const baseClasses =
-  'rounded-lg border px-4 py-3 text-sm shadow-sm flex items-start justify-between gap-4 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
+  "rounded-lg border px-4 py-3 text-sm shadow-sm flex items-start justify-between gap-4 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
-const styles: Record<StatusKind, { classes: string; Icon: typeof CheckCircleIcon }> = {
-  success: { classes: `${baseClasses} border-emerald-500/70 bg-emerald-500/10 text-emerald-100`, Icon: CheckCircleIcon },
-  info: { classes: `${baseClasses} border-blue-500/70 bg-blue-500/10 text-blue-100`, Icon: InformationCircleIcon },
-  warning: { classes: `${baseClasses} border-amber-500/70 bg-amber-500/10 text-amber-100`, Icon: ExclamationTriangleIcon },
-  error: { classes: `${baseClasses} border-rose-500/70 bg-rose-500/10 text-rose-100`, Icon: ExclamationCircleIcon }
+const styles: Record<
+  StatusKind,
+  { classes: string; Icon: typeof CheckCircleIcon }
+> = {
+  success: {
+    classes: `${baseClasses} border-emerald-500/70 bg-emerald-500/10 text-emerald-100`,
+    Icon: CheckCircleIcon,
+  },
+  info: {
+    classes: `${baseClasses} border-blue-500/70 bg-blue-500/10 text-blue-100`,
+    Icon: InformationCircleIcon,
+  },
+  warning: {
+    classes: `${baseClasses} border-amber-500/70 bg-amber-500/10 text-amber-100`,
+    Icon: ExclamationTriangleIcon,
+  },
+  error: {
+    classes: `${baseClasses} border-rose-500/70 bg-rose-500/10 text-rose-100`,
+    Icon: ExclamationCircleIcon,
+  },
 };
 
 export function StatusBanner({ status, onClear }: StatusBannerProps) {

@@ -11,6 +11,10 @@ module.exports = {
         success: '#047857',
         warning: '#b45309',
         error: '#dc2626'
+      },
+      fontFamily: {
+        'inter': ['Inter', 'sans-serif'],
+        'pt-serif': ['PT Serif Caption', 'serif'],
       }
     }
   },

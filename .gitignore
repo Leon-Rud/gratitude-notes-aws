@@ -1,8 +1,49 @@
-# build artifacts
+# Build artifacts
 .aws-sam/
 server/.aws-sam/
 client/dist/
 node_modules/
+*.tsbuildinfo
+
+# Environment variables and sensitive data
 .env*
+.env.local
+.env.production
+.env.development
+samconfig.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+*$py.class
 .venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+*.log
+
+# AWS credentials (if accidentally committed)
+.aws/
+credentials
+config
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+AI_PROJECT_CONTEXT.md

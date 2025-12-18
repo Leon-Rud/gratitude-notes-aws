@@ -1,6 +1,24 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Mission 1 - Minimal customer ID management API with API key protection.
+Description: Daily Gratitude Notes – SAM stack (API Gateway, Lambda, DynamoDB, EventBridge, Step Functions, SES).
+
+Parameters:
+  LinkedInUrl:
+    Type: String
+    Default: "https://linkedin.com/in/yourprofile"
+    Description: Your LinkedIn profile URL
+  GitHubUrl:
+    Type: String
+    Default: "https://github.com/yourusername"
+    Description: Your GitHub profile URL
+  SenderEmail:
+    Type: String
+    Default: "your-email@example.com"
+    Description: SES-verified sender email address (must be verified in AWS SES before deployment)
+  ArchiveTimeZone:
+    Type: String
+    Default: "UTC"
+    Description: IANA timezone for nightly deletion (e.g. "Europe/London", "Asia/Jerusalem"). Scheduler uses this to run at 23:00 local time.
 
 Globals:
   Function:
@@ -9,165 +27,195 @@ Globals:
     MemorySize: 256
     Environment:
       Variables:
-        CUSTOMER_IDS_TABLE: !Ref CustomerTable
+        NOTES_TABLE: !Ref GratitudeNotesTable
+        GRATITUDE_NOTES_TABLE: !Ref GratitudeNotesTable
+        SENDER_EMAIL: !Ref SenderEmail
+        REGION: !Ref AWS::Region
+        TOKEN_SECRET: !Sub ${AWS::StackName}-secret-key
+        EVENT_BUS_NAME: default
+        ARCHIVE_TIMEZONE: !Ref ArchiveTimeZone
 
 Resources:
-  CustomerTable:
+  GratitudeNotesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: customer_ids
+      TableName: gratitude_notes
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: N
+        - AttributeName: email
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: gsi_date
+          KeySchema:
+            - AttributeName: date
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: gsi_email_date
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: ttl
 
-  Api:
+  GratitudeApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: CustomerIdsApi
+      Name: DailyGratitudeApi
       StageName: prod
       EndpointConfiguration: REGIONAL
       Cors:
         AllowOrigin: "'*'"
-        AllowMethods: "'GET,PUT,DELETE,OPTIONS'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'*'"
 
-  PutFn:
+  StepPrepareEventFn:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: CustomerIdCreateFunction
-      Description: Create customer IDs with conditional writes.
-      Handler: api.put_customer_id.handler
+      FunctionName: GratitudePrepareEventFunction
+      Description: Step Function task that normalizes EventBridge payloads for the gratitude note workflow.
+      Handler: handlers.events.step_prepare_event.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref GratitudeNotesTable
+
+  StepArchiveNotesFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Step Function task that archives (marks deleted) notes each night.
+      Handler: handlers.events.step_archive_notes.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GratitudeNotesTable
+
+  PostGratitudeNotesFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Create a new daily gratitude note.
+      Handler: handlers.api.post_gratitude_note.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GratitudeNotesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: "*"
+      Events:
+        PostGratitudeNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GratitudeApi
+            Path: /gratitude-notes
+            Method: post
+
+  GetTodayGratitudeNotesFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: List today's gratitude notes for the public feed.
+      Handler: handlers.api.get_today_gratitude_notes.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref GratitudeNotesTable
+      Events:
+        GetTodayNotes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GratitudeApi
+            Path: /gratitude-notes/today
+            Method: get
+
+  GetGratitudeNoteFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Get a specific gratitude note by ID.
+      Handler: handlers.api.get_gratitude_note.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref GratitudeNotesTable
+      Events:
+        GetGratitudeNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GratitudeApi
+            Path: /gratitude-notes/{id}
+            Method: get
+
+  DeleteGratitudeNoteFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Delete a gratitude note by owner token.
+      Handler: handlers.api.delete_gratitude_note.handler
+      CodeUri: ../lambdas
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GratitudeNotesTable
+      Events:
+        DeleteGratitudeNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GratitudeApi
+            Path: /gratitude-notes/{id}
+            Method: delete
+
+  PostFeedbackFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PostFeedbackFunction
+      Description: Receive UI/UX feedback and email it to the developer.
+      Handler: handlers.api.email_feedback.handler
       CodeUri: ../lambdas
       Environment:
         Variables:
-          EVENT_BUS_NAME: default
+          SENDER_EMAIL: !Ref SenderEmail
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref CustomerTable
-        - EventBridgePutEventsPolicy:
-            EventBusName: default
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  ses:FromAddress: !Ref SenderEmail
       Events:
-        PutCustomer:
+        PostFeedback:
           Type: Api
           Properties:
-            RestApiId: !Ref Api
-            Path: /customer-ids
-            Method: put
-            Auth:
-              ApiKeyRequired: true
+            RestApiId: !Ref GratitudeApi
+            Path: /feedback
+            Method: post
 
-  GetFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CustomerIdReadFunction
-      Description: Check whether a customer ID exists.
-      Handler: api.get_customer_id.handler
-      CodeUri: ../lambdas
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref CustomerTable
-      Events:
-        GetCustomer:
-          Type: Api
-          Properties:
-            RestApiId: !Ref Api
-            Path: /customer-ids/{id}
-            Method: get
-            Auth:
-              ApiKeyRequired: true
-
-  DeleteFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CustomerIdDeleteFunction
-      Description: Delete customer IDs when present.
-      Handler: api.delete_customer_id.handler
-      CodeUri: ../lambdas
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref CustomerTable
-      Events:
-        DeleteCustomer:
-          Type: Api
-          Properties:
-            RestApiId: !Ref Api
-            Path: /customer-ids/{id}
-            Method: delete
-            Auth:
-              ApiKeyRequired: true
-
-  StepValidateFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CustomerIdValidateFunction
-      Description: Step Function task that validates whether a customer ID already exists.
-      Handler: steps.step_validate_customer_id.handler
-      CodeUri: ../lambdas
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref CustomerTable
-
-  StepInsertFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CustomerIdInsertFunction
-      Description: Step Function task that inserts a new customer ID when missing.
-      Handler: steps.step_insert_customer_id.handler
-      CodeUri: ../lambdas
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref CustomerTable
-
-  StepLogFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CustomerIdLogFunction
-      Description: Step Function task that records existing customer IDs for observability.
-      Handler: steps.step_log_customer_event.handler
-      CodeUri: ../lambdas
-
-  DevApiKey:
-    Type: AWS::ApiGateway::ApiKey
-    Properties:
-      Name: Mission1DevKey
-      Description: Hard-coded key for quick manual testing.
-      Enabled: true
-      Value: test-key-123-0000000000
-
-  ApiUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    DependsOn:
-      - ApiprodStage
-    Properties:
-      UsagePlanName: Mission1DevUsagePlan
-      Throttle:
-        RateLimit: 5
-        BurstLimit: 10
-      ApiStages:
-        - ApiId: !Ref Api
-          Stage: prod
-
-  ApiUsagePlanKey:
-    Type: AWS::ApiGateway::UsagePlanKey
-    Properties:
-      KeyId: !Ref DevApiKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref ApiUsagePlan
-
-  CustomerIdWorkflowLogGroup:
+  GratitudeWorkflowLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-customer-id-workflow
+      LogGroupName: !Sub /aws/vendedlogs/states/${AWS::StackName}-gratitude-workflow
       RetentionInDays: 30
 
-  CustomerIdWorkflowLogsPolicy:
+  GratitudeWorkflowLogsPolicy:
     Type: AWS::Logs::ResourcePolicy
     Properties:
-      PolicyName: !Sub ${AWS::StackName}-customer-id-workflow-logs
+      PolicyName: !Sub ${AWS::StackName}-gratitude-workflow-logs
       PolicyDocument: !Sub |
         {
           "Version": "2012-10-17",
@@ -188,65 +236,50 @@ Resources:
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
               ],
-              "Resource": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-customer-id-workflow:*"
+              "Resource": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vendedlogs/states/${AWS::StackName}-gratitude-workflow:*"
             }
           ]
         }
 
-  CustomerIdWorkflow:
+  GratitudeWorkflow:
     Type: AWS::Serverless::StateMachine
     DependsOn:
-      - CustomerIdWorkflowLogGroup
-      - CustomerIdWorkflowLogsPolicy
+      - GratitudeWorkflowLogGroup
+      - GratitudeWorkflowLogsPolicy
     Properties:
-      Name: !Sub ${AWS::StackName}-customer-id-workflow
+      Name: !Sub ${AWS::StackName}-gratitude-workflow
       Definition:
-        Comment: Process new customer ID events and persist them conditionally.
-        StartAt: ValidateCustomer
+        Comment: Handle nightly archive workflow for gratitude notes.
+        StartAt: PrepareEvent
         States:
-          ValidateCustomer:
+          PrepareEvent:
             Type: Task
-            Resource: ${ValidateFnArn}
-            ResultPath: "$"
-            Next: DecideNextStep
-          DecideNextStep:
+            Resource: ${PrepareFnArn}
+            Next: RouteEvent
+          RouteEvent:
             Type: Choice
             Choices:
-              - Variable: $.valid
-                BooleanEquals: false
-                Next: InvalidPayload
-              - Variable: $.exists
-                BooleanEquals: true
-                Next: LogExistingCustomer
-              - Variable: $.exists
-                BooleanEquals: false
-                Next: InsertCustomer
-            Default: InvalidPayload
-          LogExistingCustomer:
+              - Variable: $.eventType
+                StringEquals: "archive.nightly"
+                Next: ArchiveNotes
+            Default: UnknownEvent
+          ArchiveNotes:
             Type: Task
-            Resource: ${LogFnArn}
+            Resource: ${ArchiveFnArn}
             ResultPath: "$"
             End: true
-          InsertCustomer:
-            Type: Task
-            Resource: ${InsertFnArn}
-            ResultPath: "$"
-            End: true
-          InvalidPayload:
+          UnknownEvent:
             Type: Fail
-            Error: InvalidCustomerIdPayload
-            Cause: Workflow received unexpected payload data.
+            Error: GratitudeUnknownEvent
+            Cause: Event type not supported.
       DefinitionSubstitutions:
-        ValidateFnArn: !GetAtt StepValidateFn.Arn
-        LogFnArn: !GetAtt StepLogFn.Arn
-        InsertFnArn: !GetAtt StepInsertFn.Arn
+        PrepareFnArn: !GetAtt StepPrepareEventFn.Arn
+        ArchiveFnArn: !GetAtt StepArchiveNotesFn.Arn
       Policies:
         - LambdaInvokePolicy:
-            FunctionName: !Ref StepValidateFn
+            FunctionName: !Ref StepPrepareEventFn
         - LambdaInvokePolicy:
-            FunctionName: !Ref StepLogFn
-        - LambdaInvokePolicy:
-            FunctionName: !Ref StepInsertFn
+            FunctionName: !Ref StepArchiveNotesFn
         - Statement:
             - Effect: Allow
               Action:
@@ -266,22 +299,13 @@ Resources:
       Logging:
         Destinations:
           - CloudWatchLogsLogGroup:
-              LogGroupArn: !GetAtt CustomerIdWorkflowLogGroup.Arn
+              LogGroupArn: !GetAtt GratitudeWorkflowLogGroup.Arn
         IncludeExecutionData: true
         Level: ALL
       Tracing:
         Enabled: true
-      Events:
-        ScheduledScan:
-          Type: Schedule
-          Properties:
-            Name: !Sub ${AWS::StackName}-scheduled-scan
-            Description: Periodic run of the customer ID workflow
-            Schedule: rate(6 hours)
-            Enabled: true
-            Input: '{"id":"SCHEDULED-SCAN-001"}'
 
-  EventBridgeInvokeStateMachineRole:
+  GratitudeWorkflowInvokeRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -298,34 +322,54 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: states:StartExecution
-                Resource: !GetAtt CustomerIdWorkflow.Arn
+                Resource: !GetAtt GratitudeWorkflow.Arn
 
-  CustomerCreatedRule:
+  GratitudeWorkflowSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StartWorkflowExecution
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource: !GetAtt GratitudeWorkflow.Arn
+
+  # NOTE:
+  # We intentionally do NOT manage AWS::Scheduler::Schedule via CloudFormation because
+  # this account/region has CloudFormation EarlyValidation hooks enabled that reject it during changeset creation.
+  # We create the timezone-aware schedule imperatively (AWS CLI) after deployment.
+  GratitudeArchiveRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: !Sub ${AWS::StackName}-customer-created
-      EventBusName: default
-      EventPattern:
-        source:
-          - mission1.customer-ids
-        detail-type:
-          - customer-id.submitted
+      Name: !Sub ${AWS::StackName}-gratitude-archive
+      Description: Legacy UTC schedule (kept disabled). Real schedule is created via EventBridge Scheduler at 23:00 local time.
+      ScheduleExpression: cron(0 23 * * ? *)
+      State: DISABLED
       Targets:
-        - Arn: !GetAtt CustomerIdWorkflow.Arn
-          Id: CustomerWorkflowTarget
-          RoleArn: !GetAtt EventBridgeInvokeStateMachineRole.Arn
-          InputPath: "$.detail"
+        - Arn: !GetAtt GratitudeWorkflow.Arn
+          Id: GratitudeArchiveTarget
+          RoleArn: !GetAtt GratitudeWorkflowInvokeRole.Arn
+          Input: '{"eventType":"archive.nightly"}'
 
-  CustomerWorkflowFailureAlarm:
+  GratitudeWorkflowFailureAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub ${AWS::StackName}-customer-workflow-failures
-      AlarmDescription: Alarm when Step Function executions fail.
+      AlarmName: !Sub ${AWS::StackName}-gratitude-workflow-failures
+      AlarmDescription: Alarm when gratitude workflow executions fail.
       Namespace: AWS/States
       MetricName: ExecutionsFailed
       Dimensions:
         - Name: StateMachineArn
-          Value: !GetAtt CustomerIdWorkflow.Arn
+          Value: !GetAtt GratitudeWorkflow.Arn
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -333,19 +377,30 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  # TODO: Add CloudWatch Dashboard for monitoring
+  # CloudWatch Dashboard has strict validation rules - each metric array item can only have 2 elements max
+  # Need to restructure dashboard widgets to comply with CloudWatch validation
+  # DailyGratitudeDashboard:
+  #   Type: AWS::CloudWatch::Dashboard
+  #   Properties:
+  #     DashboardName: !Sub ${AWS::StackName}-DailyGratitudeDashboard
+  #     DashboardBody: !Sub |
+  #       { ... }
+
 Outputs:
-  ApiBaseUrl:
-    Description: Invoke this base URL with the API key to test.
-    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod
-  ApiKeyForTesting:
-    Description: Pre-provisioned API key for quick manual testing.
-    Value: test-key-123-0000000000
-  CustomerWorkflowArn:
+  GratitudeWorkflowArn:
     Description: Step Functions state machine ARN for Mission 3 workflow.
-    Value: !GetAtt CustomerIdWorkflow.Arn
-  CustomerCreatedRuleName:
-    Description: EventBridge rule that triggers the workflow when IDs are created.
-    Value: !Ref CustomerCreatedRule
-  CustomerWorkflowFailureAlarmName:
-    Description: CloudWatch alarm monitoring workflow failures.
-    Value: !Ref CustomerWorkflowFailureAlarm
+    Value: !GetAtt GratitudeWorkflow.Arn
+  GratitudeWorkflowFailureAlarmName:
+    Description: CloudWatch alarm monitoring gratitude workflow failures.
+    Value: !Ref GratitudeWorkflowFailureAlarm
+  GratitudeApiBaseUrl:
+    Description: Base URL for the Daily Gratitude API (public, no API key required).
+    Value: !Sub https://${GratitudeApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+  GratitudeNotesTableName:
+    Description: Name of the gratitude_notes DynamoDB table.
+    Value: !Ref GratitudeNotesTable
+  # TODO: Uncomment when DailyGratitudeDashboard is added
+  # DashboardURL:
+  #   Description: CloudWatch Dashboard URL for Daily Gratitude metrics.
+  #   Value: !Sub https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${DailyGratitudeDashboard}

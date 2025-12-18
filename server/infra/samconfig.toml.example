@@ -1,0 +1,18 @@
+version = 0.1
+[default]
+[default.global.parameters]
+region = "eu-west-1"
+
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "daily-gratitude"
+resolve_s3 = true
+s3_prefix = "daily-gratitude"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = [
+    "SenderEmail=your-email@example.com",
+    "LinkedInUrl=https://linkedin.com/in/yourprofile",
+    "GitHubUrl=https://github.com/yourusername",
+    "ArchiveTimeZone=Asia/Jerusalem"
+]
+

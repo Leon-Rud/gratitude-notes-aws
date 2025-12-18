@@ -1,431 +1,201 @@
-# Cloud Zone Assignment
+# Daily Gratitude Notes
 
-End-to-end cloud-native solution for managing customer IDs across three missions:
+A full-stack portfolio demo that lets people share a short list of daily gratitudes and automatically archive the day's notes at 23:00 (Asia/Jerusalem timezone). The project uses a React/Vite SPA for the client and an AWS SAM stack (API Gateway + Lambda + DynamoDB + EventBridge + Step Functions + SES) for the backend.
 
-1. **Mission 1** – Secure REST API (AWS SAM, Lambda, API Gateway, DynamoDB)
-2. **Mission 2** – React + Vite frontend (S3 + CloudFront)
-3. **Mission 3** – Event-driven workflow (EventBridge + Step Functions)
+## Architecture Overview
 
+```
+┌─────────────┐
+│   Browser   │
+│  (React)    │
+└──────┬──────┘
+       │ HTTPS
+       ▼
+┌─────────────────┐
+│  API Gateway    │
+│  /gratitude-notes│
+└──────┬──────────┘
+       │
+       ├──► POST /gratitude-notes ──► Lambda ──► DynamoDB
+       ├──► GET /gratitude-notes/today ──► Lambda ──► DynamoDB
+       ├──► GET /gratitude-notes/{id} ──► Lambda ──► DynamoDB
+       ├──► DELETE /gratitude-notes/{id} ──► Lambda ──► DynamoDB
+       └──► POST /feedback ──► Lambda ──► SES (email)
 
-## Architecture diagram
-
-```mermaid
-flowchart LR
-  %% --- Mission 2 - Client ---
-  subgraph Client
-    User
-    App["React SPA client"]
-  end
-
-  %% --- Delivery (Mission 2) ---
-  subgraph Delivery["Mission 2 - Delivery"]
-    CF["CloudFront distribution"]
-    S3["S3 static site"]
-    CF --> S3
-  end
-
-  %% --- Backend (Mission 1) ---
-  subgraph Backend["Mission 1 - API"]
-    APIGW["API Gateway /customer-ids"]
-    PutFn["Lambda Create"]
-    GetFn["Lambda Read"]
-    DelFn["Lambda Delete"]
-    Dynamo["DynamoDB table: customer_ids"]
-    APIGW --> PutFn
-    APIGW --> GetFn
-    APIGW --> DelFn
-    PutFn --> Dynamo
-    GetFn --> Dynamo
-    DelFn --> Dynamo
-  end
-
-  %% --- Workflow (Mission 3) ---
-  subgraph Workflow["Mission 3 - Workflow"]
-    EB["EventBridge (rule: customer-id.submitted)"]
-    SFN["Step Functions: customer-id-workflow"]
-    Val["Lambda Validate"]
-    Ins["Lambda Insert"]
-    Log["Lambda Log existing"]
-    EB --> SFN --> Val
-    Val -- "exists: false" --> Ins --> Dynamo
-    Val -- "exists: true" --> Log
-    Sched["EventBridge Schedule (6h)"] -.-> EB
-  end
-
-  %% Connections between areas
-  User --> App
-  App -- "API key header" --> APIGW
-  App -. "served by" .-> CF
-  PutFn -- "PutEvents { id }" --> EB
+┌──────────────────┐
+│ EventBridge      │
+│ Scheduler        │
+│ (23:00 daily)    │
+└──────┬───────────┘
+       │
+       ▼
+┌──────────────────┐
+│ Step Functions   │
+│ (Archive Workflow)│
+└──────┬───────────┘
+       │
+       ▼
+┌──────────────────┐
+│ Lambda           │
+│ (Archive Notes)  │
+└──────┬───────────┘
+       │
+       ▼
+┌──────────────────┐
+│ DynamoDB         │
+│ (gratitude_notes)│
+└──────────────────┘
 ```
 
+- **API Gateway (`/gratitude-notes`)** – public REST interface handled by Lambda functions:
+  - `POST /gratitude-notes` – create a note (name, email, gratitude text)
+  - `GET /gratitude-notes/today` – list today's notes (newest first)
+  - `GET /gratitude-notes/{id}` – fetch a note
+  - `DELETE /gratitude-notes/{id}?token=OWNER_TOKEN` – delete/withdraw a note via the owner token
+  - `POST /feedback` – send UI/UX feedback to the developer
+- **DynamoDB tables** – `gratitude_notes` (notes)
+- **EventBridge Scheduler + Step Functions** – handles scheduled archiving:
+  - A scheduled AWS Scheduler rule fires at 23:00 (configurable timezone) → Step Function workflow marks the day's notes as `deleted`
+  - Step Functions orchestrates the archive workflow: PrepareEvent → RouteEvent → ArchiveNotes
+- **CloudWatch dashboard** – monitors note creation, Lambda errors/duration, API Gateway metrics, and the Step Function health
+- **SES (eu-west-1 sandbox)** – sends feedback emails to the developer
 
-## Repository layout
+_No API keys are required. The legacy customer-ID workflow has been fully removed and everything in the stack is now dedicated to the gratitude notes experience._
 
-- `server/` – backend SAM project (`infra/template.yaml`, Lambda sources, tests)
-- `client/` – React/Vite single-page app with Tailwind styling
-- `scripts/` – deployment helpers (`deploy_backend.sh`, `deploy_frontend.sh`, `capture_outputs.sh`)
-- `docs/` – placeholder for diagrams/screenshots
-
-## Prerequisites
-
-- Python 3.13+
-- Node.js 18+ and npm
-- AWS CLI configured with credentials
-- AWS SAM CLI (latest stable)
-
-## Quick start
-
-### Backend (Missions 1 & 3)
+## Backend (SAM) Setup
 
 ```bash
-./scripts/deploy_backend.sh
-source ./scripts/capture_outputs.sh customer-id-api-dev
-curl -X PUT "$ApiBaseUrl/customer-ids" \
-     -H "x-api-key: $ApiKeyForTesting" \
-     -H "Content-Type: application/json" \
-     -d '{"id":"TEST123"}'
+./scripts/deploy_backend.sh          # default stack name `daily-gratitude`
+# or run manually:
+# sam build -t server/infra/template.yaml
+# sam deploy -t server/infra/template.yaml --guided --stack-name daily-gratitude
 ```
 
-Creating an ID triggers the Mission 3 workflow automatically; see **Mission 3 – How to test** below.
+Script highlights:
 
-Unit tests:
+- Validates & builds the SAM template (`server/infra/template.yaml`)
+- Deploys to `eu-west-1` by default
+- Prints the CloudFormation output `GratitudeApiBaseUrl`
+- Exports helper env vars: `export VITE_API_BASE_URL="<api-url>"` and intentionally unsets `VITE_API_KEY`
 
-```bash
-cd server
-python3 -m unittest discover -s tests
-```
+Alternatively you can run `source scripts/capture_outputs.sh` to populate `client/.env.production` with the detected API base URL.
 
-### Frontend (Mission 2)
+### Infrastructure resources
+
+| Resource                             | Purpose                                                |
+| ------------------------------------ | ------------------------------------------------------ |
+| `PostGratitudeNotesFn`               | POST `/gratitude-notes`                                |
+| `GetTodayGratitudeNotesFn`           | GET `/gratitude-notes/today`                           |
+| `GetGratitudeNoteFn`                 | GET `/gratitude-notes/{id}`                            |
+| `DeleteGratitudeNoteFn`              | DELETE `/gratitude-notes/{id}`                         |
+| `PostFeedbackFn`                     | POST `/feedback`                                       |
+| `GratitudeWorkflow` (Step Functions) | handles `archive.nightly` scheduled archiving workflow |
+| `gratitude_notes` DynamoDB table     | note storage (TTL = 7 days)                            |
+| `DailyGratitudeDashboard`            | CloudWatch dashboard for metrics (TODO: re-implement)  |
+
+## Frontend Setup
 
 ```bash
 cd client
 npm install
-npm run dev
+npm run dev          # http://localhost:5173
 ```
 
-Visit http://localhost:5173 (uses `.env.local` for API base URL and key). Production build/deploy script lives at `scripts/deploy_frontend.sh`.
-
-### Handy scripts
-
-- `deploy_backend.sh` – validate, build, deploy SAM stack
-- `deploy_frontend.sh` – build React app, upload to S3, invalidate CloudFront
-- `capture_outputs.sh` – export API base URL and key after deploy
-- `put_test_event.sh` – publish a synthetic EventBridge event for Mission 3
-
----
-
-## Mission 1 – Customer ID API
-
-Serverless REST API that creates, reads, and deletes customer IDs in DynamoDB with API key protection.
-
-### Ready-to-run curl scenarios
-
-Export API values (after deployment) with the helper script:
+Create `client/.env.local` (or set env vars before `npm run build`). You can copy `client/env.example`:
 
 ```bash
-source ./scripts/capture_outputs.sh customer-id-api-dev
-```
-
-- **Create new ID (201)**
-  ```bash
-  curl -X PUT "$ApiBaseUrl/customer-ids" \
-       -H "x-api-key: $ApiKeyForTesting" \
-       -H "Content-Type: application/json" \
-       -d '{"id":"TEST123"}'
-  ```
-- **Create duplicate ID (409)**
-  ```bash
-  curl -X PUT "$ApiBaseUrl/customer-ids" \
-       -H "x-api-key: $ApiKeyForTesting" \
-       -H "Content-Type: application/json" \
-       -d '{"id":"TEST123"}'
-  ```
-- **Create with invalid payload (400)**
-  ```bash
-  curl -X PUT "$ApiBaseUrl/customer-ids" \
-       -H "x-api-key: $ApiKeyForTesting" \
-       -H "Content-Type: application/json" \
-       -d '{"id":"ab"}'
-  ```
-- **Fetch existing ID (200)**
-  ```bash
-  curl "$ApiBaseUrl/customer-ids/TEST123" \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-- **Fetch missing ID (404)**
-  ```bash
-  curl "$ApiBaseUrl/customer-ids/CUST-999" \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-- **Fetch with invalid path param (400)**
-  ```bash
-  curl "$ApiBaseUrl/customer-ids/ab" \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-- **Delete existing ID (200)**
-  ```bash
-  curl -X DELETE "$ApiBaseUrl/customer-ids/TEST123" \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-- **Delete missing ID (404)**
-  ```bash
-  curl -X DELETE "$ApiBaseUrl/customer-ids/CUST-999" \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-- **Delete with invalid path param (400)**
-  ```bash
-  curl -X DELETE "$ApiBaseUrl/customer-ids/  " \
-       -H "x-api-key: $ApiKeyForTesting"
-  ```
-
-### Expected responses
-
-| Endpoint & scenario                    | Sample request                | Expected status   | Sample response                                                        |
-| -------------------------------------- | ----------------------------- | ----------------- | ---------------------------------------------------------------------- |
-| `PUT /customer-ids` ✅ new ID          | Body `{"id":"TEST123"}`       | `201 Created`     | `{"message":"Customer ID stored.","id":"TEST123"}`                     |
-| `PUT /customer-ids` ⚠️ duplicate       | Same body after it exists     | `409 Conflict`    | `{"message":"Customer ID already exists.","id":"TEST123"}`             |
-| `PUT /customer-ids` ❌ invalid payload | Body `{}` or bad chars        | `400 Bad Request` | `{"message":"Field 'id' must be 3 to 100 characters after trimming."}` |
-| `GET /customer-ids/{id}` ✅ found      | Path `/customer-ids/TEST123`  | `200 OK`          | `{"exists":true,"id":"TEST123"}`                                       |
-| `GET /customer-ids/{id}` ❌ missing    | Path `/customer-ids/CUST-999` | `404 Not Found`   | `{"exists":false,"id":"CUST-999"}`                                     |
-| `DELETE /customer-ids/{id}` ✅ deleted | Path `/customer-ids/TEST123`  | `200 OK`          | `{"message":"Customer ID deleted.","id":"TEST123"}`                    |
-| `DELETE /customer-ids/{id}` ❌ missing | Path `/customer-ids/CUST-999` | `404 Not Found`   | `{"message":"Customer ID not found.","id":"CUST-999"}`                 |
-
-Customer IDs must be 3–100 characters and may only contain letters, numbers, hyphen, or underscore.
-
----
-
-## Mission 2 – Customer ID Frontend
-
-Responsive single-page React app communicating with the Mission 1 API.
-
-### Tech stack
-
-- React 18 + TypeScript (Vite)
-- Tailwind CSS with utility class composition
-- Fetch API wrapper (`src/services/apiClient.ts`)
-- Heroicons for status messaging
-
-### Project layout highlights
-
-- `src/App.tsx` – orchestrates add/check/delete forms
-- `src/components/` – form cards, status banners
-- `src/services/` – API client, validation helpers, response types
-- `public/assets/` – screenshots used in documentation
-
-### Run locally
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-Set environment variables in `client/.env.local`:
-
-```dotenv
 VITE_API_BASE_URL=https://xxxxxxxx.execute-api.eu-west-1.amazonaws.com/prod
-VITE_API_KEY=test-key-123-0000000000
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+# Optional: enable the in-app feedback button for testers
+# VITE_ENABLE_FEEDBACK=true
+# no API key is needed
 ```
 
-Preview build:
+Google OAuth: add the following Authorized JavaScript origins in Google Cloud Console:
+
+- `http://localhost:5173`
+- Your deployed frontend URL (e.g., the S3 static site URL output by `deploy_frontend.sh`)
+
+To enable the feedback widget for UI/UX sessions, set `VITE_ENABLE_FEEDBACK=true` and ensure the backend `/feedback` endpoint is deployed.
+
+The SPA is a single hash-router page:
+
+- `#/` shows the form + today's public feed
+- `#/notes/{id}` shows a single note detail view
+
+## API Reference (public, no auth)
+
+| Method & Path                                    | Description                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `POST /gratitude-notes`                          | Body `{ name, email, gratitudeText }` → creates a note, enforces 1 per day/email |
+| `GET /gratitude-notes/today`                     | Returns `{ items: [{ id, name, note_items, created_at }] }`                      |
+| `GET /gratitude-notes/{id}`                      | Returns the note metadata unless it has been deleted/archived                    |
+| `DELETE /gratitude-notes/{id}?token=OWNER_TOKEN` | Marks the note as `deleted`                                                      |
+| `POST /feedback`                                 | Body `{ feedback }` → sends feedback email to the developer                      |
+
+### Example curl flow
 
 ```bash
-npm run build
-npm run preview
+# Create a note
+curl -X POST "$GratitudeApiBaseUrl/gratitude-notes" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Alex",
+           "email": "alex@example.com",
+           "gratitudeText": "Morning coffee\nSupportive team\nA quiet walk"
+         }'
+
+# Fetch today's feed
+curl "$GratitudeApiBaseUrl/gratitude-notes/today"
+
+# Delete via owner token (returned in POST response)
+curl -X DELETE "$GratitudeApiBaseUrl/gratitude-notes/<NOTE_ID>?token=<OWNER_TOKEN>"
 ```
 
-Hosted build: **https://d225q5cc7dufbs.cloudfront.net/**
+## Event-Driven Workflow
 
-> Deploy script `scripts/deploy_frontend.sh` syncs the build output to the S3 bucket defined in the script (`BUCKET=customer-id-frontend`) and invalidates the CloudFront distribution (`DIST_ID=EETTBUVQTK0KF`). Update those identifiers before running it in your own AWS account.
+The Step Function workflow handles scheduled archiving:
 
-### UI testing checklist
+- **EventBridge Scheduler** triggers at 23:00 (configurable timezone, default: UTC)
+- **Step Functions Workflow** (`GratitudeWorkflow`):
+  1. `PrepareEvent` - Validates the archive event
+  2. `RouteEvent` - Routes to archive processing
+  3. `ArchiveNotes` - Queries `gratitude_notes` for the current date and sets `status = deleted, archived_at = now`
 
-| Scenario                        | Expected UI                        |
-| ------------------------------- | ---------------------------------- |
-| Add new ID (`TEST123`)          | Green “Customer ID stored” banner  |
-| Add duplicate (`TEST123` twice) | Red “Unable to store ID” banner    |
-| Check existing                  | Green “ID found” banner            |
-| Check missing                   | Blue “ID not found” banner         |
-| Delete existing                 | Green “ID deleted” banner          |
-| Delete missing                  | Red “Unable to delete ID” banner   |
-| Invalid input (`ab`)            | Amber “Invalid customer ID” banner |
+View the execution history in Step Functions or the CloudWatch dashboard widgets to confirm the workflow is firing.
 
-### Screenshots
+## Testing
 
-Shows the dashboard after adding a new customer ID.
-
-![Desktop dashboard](client/public/assets/desktop.png)
-
-Shows adaptive UI behavior and form controls on mobile.
-
-![Mobile layout](client/public/assets/mobile.png)
-
-Shows duplicate ID error status.
-
-![Duplicate ID error](client/public/assets/error.png)
-
----
-
-## Mission 3 – Event-Driven Step Function Workflow
-
-New customer IDs automatically trigger a Step Functions state machine via Amazon EventBridge.
-The workflow:
-
-1. validates the ID (format + existence),
-2. **logs** if it already exists, or
-3. **inserts** it into DynamoDB if it does not.
-
-**Stack outputs**
-
-- `CustomerWorkflowArn` – Step Function ARN
-- `CustomerCreatedRuleName` – EventBridge rule name
-- `CustomerWorkflowFailureAlarmName` – CloudWatch alarm name
-
----
-
-### How to test
-
-#### A) End-to-end via the API
-
-1. Create a new ID (publishes the event automatically):
-   ```bash
-   curl -X PUT "$ApiBaseUrl/customer-ids" \
-        -H "x-api-key: $ApiKeyForTesting" \
-        -H "Content-Type: application/json" \
-        -d '{"id":"STEP-DEMO-001"}'
-   ```
-2. Open **Step Functions → Executions** and verify a new execution appears.
-3. For a new ID you should see `ValidateCustomer → InsertCustomer → End`.  
-   For an existing ID you should see `ValidateCustomer → LogExistingCustomer → End`.
-
-#### B) Direct EventBridge test (manual)
-
-Use this **test event structure** in EventBridge (or with the CLI). It matches the rule:
-`source = "mission1.customer-ids"` and `detail-type = "customer-id.submitted"`.
-
-```json
-{
-  "version": "0",
-  "id": "test-event-uuid",
-  "detail-type": "customer-id.submitted",
-  "source": "mission1.customer-ids",
-  "account": "<YOUR_ACCOUNT_ID>",
-  "region": "<YOUR_REGION>",
-  "time": "2025-10-18T10:00:00Z",
-  "resources": [],
-  "detail": { "id": "STEP-DEMO-002" }
-}
-```
-
-**CLI one-liner:**
+Backend unit tests rely on the fake fixtures in `server/tests/conftest.py`:
 
 ```bash
-aws events put-events --entries '[
-  {
-    "Source": "mission1.customer-ids",
-    "DetailType": "customer-id.submitted",
-    "Detail": "{\"id\":\"STEP-DEMO-002\"}",
-    "EventBusName": "default"
-  }
-]'
+python -m pytest server/tests/test_gratitude_notes.py   # install pytest first if needed
 ```
 
-**Expected result**
+The test suite covers creating notes, listing today's feed, sending feedback, deleting notes, and running the nightly archive handler.
 
-- Step Functions execution starts automatically.
-- New ID → **InsertCustomer** path.
-- Existing ID → **LogExistingCustomer** path.
+## CloudWatch Dashboard
 
----
+`DailyGratitudeDashboard` surfaces:
 
-### Scheduled scan (automatic)
+- Notes created and emails sent (namespace `DailyGratitude`)
+- Lambda errors/duration for the gratitude functions
+- API Gateway 4XX/5XX + latency
+- DynamoDB read/write capacity for `gratitude_notes`
 
-An EventBridge **schedule rule** (`<stack>-scheduled-scan`) automatically triggers the Step Functions workflow every 6 hours with the input `{"id":"SCHEDULED-SCAN-001"}`.  
-This serves as a periodic **health check**, verifying that the EventBridge rule and workflow integration are functioning correctly even without new API submissions.
+_Note: Dashboard is currently disabled (TODO: re-implement with correct metric structure)_
 
-**Verify in AWS**
+## Deployment Scripts Recap
 
-- EventBridge → **Rules** → confirm `<stack>-scheduled-scan` is **ENABLED** and shows upcoming invocations.
-- Step Functions → **Executions** → look for runs where the input `id` equals `SCHEDULED-SCAN-001`.
-- CloudWatch Logs → `/aws/vendedlogs/states/<stack>-customer-id-workflow` → confirm a `validate_id` entry with that ID.
+| Script                         | Purpose                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------- |
+| `./scripts/deploy_backend.sh`  | Builds & deploys SAM stack (`daily-gratitude`), prints API URL, unsets `VITE_API_KEY` |
+| `./scripts/capture_outputs.sh` | Helper to export the API base URL and regenerate `client/.env.production`             |
+| `./scripts/deploy_frontend.sh` | Builds the SPA and uploads to S3/CloudFront (only needs `VITE_API_BASE_URL`)          |
 
----
+## Notes
 
-### Monitoring
-
-- **Step function execution (Setp Functions → State machines → State machine name -> Latest execution)**
-
-- **Metrics (CloudWatch → Metrics → AWS/States)**  
-  Graph `ExecutionsStarted`, `ExecutionsSucceeded`, `ExecutionsFailed` for the state machine ARN.
-- **Alarm**  
-  Alarm `…customer-workflow-failures` on `ExecutionsFailed >= 1` is present (state OK is fine).
-- **Logs**
-  - Step Function logs: `/aws/vendedlogs/states/<stack>-customer-id-workflow`
-  - Lambda logs: `/aws/lambda/CustomerId*Function`
-
-**Structured log examples**
-
-```json
-{"action":"step_validate_customer_id","id":"STEP-DEMO-001","valid":true,"exists":false}
-{"action":"step_insert_customer_id_success","id":"STEP-DEMO-001","inserted":true}
-{"action":"step_log_customer_event","id":"STEP-DEMO-001","exists":true}
-```
-
-**Logs Insights query**
-
-> Prerequisite: choose the `CustomerIdValidateFunction`, `CustomerIdInsertFunction`, and `CustomerIdLogFunction` log groups in CloudWatch Logs Insights before running the query.
-
-```
-fields @timestamp, action, id, valid, exists, @message
-| filter action in ["step_validate_customer_id","step_insert_customer_id_success","step_log_customer_event"]
-| sort @timestamp desc
-| limit 50
-```
-
----
-
-## Monitoring Output
-
-### Step Function execution graph
-
-Shows workflow runs correctly for new or existing customer IDs.  
-Screenshot below demonstrates successful execution of the state machine for customer ID `STEP-DEMO-001`.
-
-![Step Function execution graph](./docs/screenshots/step-function-execution.png)
-
-### CloudWatch Metrics
-
-Displays `ExecutionsStarted`, `ExecutionsSucceeded`, and `ExecutionsFailed` metrics for the workflow.
-
-![CloudWatch Metrics](./docs/screenshots/cloudwatch-metrics.png)
-
-### CloudWatch Alarm
-
-Shows the `customer-workflow-failures` alarm configured on `ExecutionsFailed >= 1`.
-
-![CloudWatch Alarm](./docs/screenshots/cloudwatch-alarm.png)
-
-### CloudWatch Logs
-
-Demonstrates structured log entries produced by the workflow and Lambda functions.
-
-![CloudWatch Logs](./docs/screenshots/cloudwatch-logs.png)
-
-### EventBridge Rule
-
-Shows the EventBridge rule that triggers the Step Functions workflow on new or scheduled events.
-
-![EventBridge Rule](./docs/screenshots/eventbridge-rule.png)
-
-**Step Function ARN (from stack outputs)**
-`arn:aws:states:eu-west-1:520725971720:stateMachine:customer-id-api-dev-customer-id-workflow`
-
----
-
-## Testing & validation summary
-
-- Backend unit tests: `python3 -m unittest discover -s server/tests`
-- Frontend type-check & build: `npm run build`
-- SAM template validation: `sam validate -t server/infra/template.yaml`
-
+- SES is still in sandbox mode (verified sender email required). Use verified recipient emails or upgrade your SES account before demoing.
+- `gratitude_notes` TTL is set to 7 days; archived notes remain queryable (with `status = deleted`) until the TTL expires.
+- The previous customer-ID API, API keys, and unsubscribe flows have been removed; every Lambda now serves the gratitude notes experience.
+- Archive schedule runs at 23:00 in Asia/Jerusalem timezone (configured via AWS Scheduler).
