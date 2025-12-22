@@ -13,7 +13,7 @@ module.exports = {
         error: '#dc2626'
       },
       fontFamily: {
-        'inter': ['Inter', 'sans-serif'],
+        'poppins': ['Poppins', 'sans-serif'],
         'pt-serif': ['PT Serif Caption', 'serif'],
       }
     }

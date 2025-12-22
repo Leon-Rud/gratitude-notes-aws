@@ -25,9 +25,9 @@ export async function callApi<T>(
     throw new Error(MISSING_CONFIG_MESSAGE);
   }
 
-  // cancells the request after 15 sec
+  // cancells the request after 10 sec (Lambda timeout is 10s, so no point waiting longer)
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   const headers: HeadersInit = {};
   const init: RequestInit = {

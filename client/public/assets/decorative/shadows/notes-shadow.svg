@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 358 358" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="-15" y="-15" width="388" height="388"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(7.5px);clip-path:url(#bgblur_0_0_4_clip_path);height:100%;width:100%"></div></foreignObject><g id="Notes shadow" data-figma-bg-blur-radius="15">
+<circle cx="179" cy="179" r="179" fill="var(--fill-0, #D9D9D9)" fill-opacity="0.5" style="mix-blend-mode:luminosity"/>
+</g>
+<defs>
+<clipPath id="bgblur_0_0_4_clip_path" transform="translate(15 15)"><circle cx="179" cy="179" r="179"/>
+</clipPath></defs>
+</svg>

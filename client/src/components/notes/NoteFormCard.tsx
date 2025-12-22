@@ -1,86 +1,61 @@
-import { useState } from "react";
-import { StatusBanner, StatusState } from "../StatusBanner";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { createGratitudeNote, parseGratitudeText } from "../../api/notes";
+import type { GratitudeNote } from "../../api/types";
 
 type NoteFormCardProps = {
   onSuccess?: () => void;
   compact?: boolean; // If true, removes outer section wrapper for modal use
+  editingNote?: GratitudeNote | null; // If provided, form is in edit mode
 };
 
 export function NoteFormCard({
   onSuccess,
   compact = false,
+  editingNote = null,
 }: NoteFormCardProps = {}) {
   const { user } = useAuth();
   const [gratitudeText, setGratitudeText] = useState("");
 
-  const [status, setStatus] = useState<StatusState | null>(null);
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editingNote) {
+      // Join gratitude items with newlines for editing
+      setGratitudeText(editingNote.gratitudeItems.join("\n"));
+    } else {
+      setGratitudeText("");
+    }
+  }, [editingNote]);
+
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const MAX_LENGTH = 200;
+  const MAX_LINES = 6;
 
-  function handleGratitudeChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const value = e.target.value;
-    const wasEmpty = gratitudeText.trim() === "";
-
-    // Auto-add bullet to first line only when user starts typing (field was empty)
-    if (wasEmpty && value && !value.includes("\n")) {
-      const trimmed = value.trim();
-      if (trimmed && !trimmed.match(/^[-•*]\s/)) {
-        setGratitudeText(`• ${trimmed}`);
-        // Adjust cursor position
-        setTimeout(() => {
-          e.target.setSelectionRange(trimmed.length + 2, trimmed.length + 2);
-        }, 0);
-        return;
-      }
-    }
-
-    // Check if user is typing on a new empty line (after a newline)
-    const cursorPos = e.target.selectionStart;
-    const textBeforeCursor = value.substring(0, cursorPos);
-    const lines = textBeforeCursor.split("\n");
-    const currentLine = lines[lines.length - 1];
-
-    // If current line is empty (just whitespace) and user starts typing, add bullet
-    if (currentLine.trim() === "" && value.length > gratitudeText.length) {
-      // User just typed something on an empty line
-      const textAfterCursor = value.substring(cursorPos);
-      const newValue = textBeforeCursor + "• " + textAfterCursor;
-      setGratitudeText(newValue);
-      setTimeout(() => {
-        e.target.setSelectionRange(cursorPos + 2, cursorPos + 2);
-      }, 0);
-      return;
-    }
-
-    setGratitudeText(value);
+  function enforceMaxLines(value: string) {
+    const lines = value.split("\n");
+    if (lines.length <= MAX_LINES) return value;
+    return lines.slice(0, MAX_LINES).join("\n");
   }
 
-  function handleGratitudeKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const textarea = e.currentTarget;
-      const value = textarea.value;
-      const cursorPos = textarea.selectionStart;
-
-      // Get the current line
-      const textBeforeCursor = value.substring(0, cursorPos);
-      const textAfterCursor = value.substring(cursorPos);
-
-      // Always add bullet to new line
-      const newValue = textBeforeCursor + "\n• " + textAfterCursor;
-      setGratitudeText(newValue);
-
-      // Set cursor position after the bullet
-      setTimeout(() => {
-        const newCursorPos = cursorPos + 3; // "\n• " = 3 characters
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }, 0);
+  function handleGratitudeChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const newValue = e.target.value;
+    // Enforce max length
+    const limitedValue = enforceMaxLines(newValue);
+    if (limitedValue.length <= MAX_LENGTH) {
+      setGratitudeText(limitedValue);
+      // Clear error state when user starts typing
+      if (error) {
+        setError(null);
+      }
     }
   }
 
   function validate(): string | null {
     if (!user?.name || !user?.email) return "Please sign in to continue";
+    if (gratitudeText.trim().length === 0) return "Please write a few words.";
+    if (gratitudeText.length > MAX_LENGTH)
+      return `Note must be ${MAX_LENGTH} characters or less.`;
     const items = parseGratitudeText(gratitudeText);
     if (items.length === 0) return "Add at least one gratitude item";
     return null;
@@ -88,10 +63,10 @@ export function NoteFormCard({
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus(null);
-    const error = validate();
-    if (error) {
-      setStatus({ kind: "error", title: "Invalid input", message: error });
+    setError(null);
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setIsLoading(true);
@@ -122,67 +97,79 @@ export function NoteFormCard({
       // Call success callback if provided
       onSuccess?.();
     } catch (e) {
+      // Show inline error for backend errors too
       const message = e instanceof Error ? e.message : "Request failed";
-      setStatus({ kind: "error", title: "Submission failed", message });
+      setError(message);
       setIsLoading(false);
     }
   }
 
   const content = (
     <>
-      <StatusBanner status={status} onClear={setStatus} />
       <div
         className={
           compact
-            ? "flex h-full flex-col"
-            : "flex h-full flex-col rounded-xl bg-slate-800/80 p-6 shadow-lg ring-1 ring-slate-700"
+            ? "flex h-full flex-col px-[24px] pb-[20px] pt-[24px]"
+            : "flex h-full flex-col rounded-[6px] border border-[rgba(255,255,255,0.12)] bg-[#2a2558] px-[24px] pb-[20px] pt-[24px] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]"
         }
       >
         <form
-          className="flex flex-1 flex-col gap-4"
+          className="flex flex-col gap-[13px]"
           onSubmit={onSubmit}
           aria-busy={isLoading}
         >
-          <div className="flex flex-1 flex-col gap-4">
-            {user && (
-              <div className="rounded-lg bg-slate-700/50 p-3 text-sm">
-                <p className="text-slate-300">
-                  Signed in as{" "}
-                  <span className="font-semibold text-white">{user.name}</span>
-                  {user.email && (
-                    <span className="text-slate-400"> ({user.email})</span>
-                  )}
-                </p>
-              </div>
-            )}
-
-            <div>
-              <label
-                htmlFor="gratitude"
-                className="block text-sm font-medium text-slate-200"
-              >
-                Gratitude items
-              </label>
+          <div className="relative flex flex-col gap-[8px]">
+            <label
+              htmlFor="gratitude"
+              className="font-poppins text-[14px] font-normal uppercase leading-[21px] text-[rgba(255,255,255,0.7)]"
+            >
+              Note
+            </label>
+            <div className="relative">
               <textarea
                 id="gratitude"
                 rows={6}
                 value={gratitudeText}
                 onChange={handleGratitudeChange}
-                onKeyDown={handleGratitudeKeyDown}
-                className="field min-h-[120px]"
-                placeholder={`Example:\n• Morning coffee ritual\n• Supportive teammate\n• A quiet walk at lunch`}
+                maxLength={MAX_LENGTH}
+                className={`gratitude-textarea font-poppins h-[240px] w-full resize-none overflow-y-auto rounded-[8px] border bg-[#524974] py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] text-white placeholder:text-white/70 focus:outline-none focus:ring-0 disabled:opacity-50 ${
+                  error
+                    ? "border-[#eb4cd8]"
+                    : "border border-[rgba(255,255,255,0.2)]"
+                }`}
+                placeholder="What are you grateful for today?"
                 disabled={isLoading}
               />
+              <span
+                className={`font-poppins absolute bottom-[18px] right-[21px] whitespace-nowrap text-[16px] font-normal leading-[26px] opacity-80 ${
+                  gratitudeText.length > MAX_LENGTH
+                    ? "text-[#eb4cd8]"
+                    : "text-[rgba(255,255,255,0.8)]"
+                }`}
+              >
+                {gratitudeText.length}/{MAX_LENGTH}
+              </span>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            aria-disabled={isLoading}
-            className="mt-auto inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isLoading ? "Working…" : "Share gratitude"}
-          </button>
+          {error && (
+            <p className="font-poppins text-[14px] font-normal leading-[21px] text-[#eb4cd8]">
+              {error}
+            </p>
+          )}
+          <div className="mt-[20px] flex justify-center">
+            <button
+              type="submit"
+              disabled={isLoading}
+              aria-disabled={isLoading}
+              className="font-poppins h-[48px] w-[450px] rounded-[16px] bg-[rgba(2,0,17,0.7)] text-[18px] font-medium text-white shadow-[0px_10px_30px_0px_rgba(0,0,0,0.25)] transition-all hover:bg-[rgba(2,0,17,0.85)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading
+                ? "Sharing gratitude ✨"
+                : editingNote
+                  ? "Update gratitude"
+                  : "Share gratitude"}
+            </button>
+          </div>
         </form>
       </div>
     </>
