@@ -37,7 +37,7 @@ export function LoginPage() {
       login({
         name: userData.name,
         email: userData.email,
-        picture: userData.picture,
+        picture: userData.picture || undefined,
       });
       window.location.hash = "#/about";
     } catch (error) {
@@ -66,8 +66,9 @@ export function LoginPage() {
       <div className="relative z-10 flex h-screen flex-col justify-between overflow-hidden">
         {/* Hero section - Left side */}
         <div className="flex flex-1 items-start pb-4 pl-[calc(8.33%+2px)] pr-6 pt-20 sm:pl-[calc(8.33%+2px)] sm:pr-10 sm:pt-24 md:pl-[calc(8.33%+2px)] md:pr-16 md:pt-32">
-          <div className="gap- flex w-full max-w-[498px] flex-col px-6 py-4 sm:gap-8 sm:px-10 sm:py-6 md:gap-12 md:px-10 md:py-8">
-            <h1 className="font-poppins mt-[32px] flex flex-col gap-[32px] text-2xl font-semibold italic leading-[1.3] text-white sm:text-3xl md:gap-[32px] md:text-4xl lg:gap-[32px] lg:text-[48px]">
+          <div className="flex w-full max-w-[498px] flex-col gap-4 px-6 py-4 sm:gap-6 sm:px-10 sm:py-6 md:gap-8 md:px-10 md:py-8">
+            <h1 className="font-poppins flex flex-col gap-[32px] text-2xl font-semibold italic leading-[1.3] text-white sm:text-3xl md:gap-[32px] md:text-4xl lg:gap-[32px] lg:text-[48px]">
+              {" "}
               <span>START YOUR DAY</span>
               <span>WITH GRATITUDE</span>
             </h1>

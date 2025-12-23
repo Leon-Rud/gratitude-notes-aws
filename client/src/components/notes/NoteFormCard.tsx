@@ -166,8 +166,8 @@ export function NoteFormCard({
               {isLoading
                 ? "Sharing gratitude ✨"
                 : editingNote
-                  ? "Update gratitude"
-                  : "Share gratitude"}
+                  ? "Update gratitude ✨"
+                  : "Share gratitude ✨"}
             </button>
           </div>
         </form>

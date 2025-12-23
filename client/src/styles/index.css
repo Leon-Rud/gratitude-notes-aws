@@ -2,9 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overflow-y: auto;
+}
+
 body {
   @apply min-h-screen bg-slate-900 text-slate-100 antialiased;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 #root {
