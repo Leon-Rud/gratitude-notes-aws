@@ -18,7 +18,7 @@ function FeedPage({
   enableFeedback: boolean;
 }) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative min-h-screen w-full">
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div
@@ -32,14 +32,14 @@ function FeedPage({
           }}
           aria-hidden="true"
         />
-        {/* Figma uses an overlay tint; keep image sharp (no blur on initial background) */}
-        <div className="absolute inset-0 bg-[rgba(95,82,178,0.45)]" />
+        {/* Figma uses an overlay tint with backdrop blur */}
+        <div className="absolute inset-0 bg-[rgba(95,82,178,0.45)] backdrop-blur-[7.875px]" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen w-full">
+      <div className="relative z-10 w-full">
         {/* Figma layout: left offset 37px, no matching right padding (content width = 1475). */}
-        <div className="mx-auto flex min-h-screen w-full flex-col pl-[37px] pr-0">
+        <div className="mx-auto flex w-full flex-col pl-[37px] pr-0">
           {/* Header */}
           {/* Figma header: positioned at y=17 with 16px internal padding and height ~112px */}
           <header className="mt-[17px] flex min-h-[112px] flex-col justify-start gap-4 p-[16px] sm:flex-row sm:items-start sm:justify-between">
@@ -56,15 +56,38 @@ function FeedPage({
               {/* User Avatar with Logout */}
               {user && (
                 <div className="flex items-center gap-3">
-                  {user.picture && (
-                    <div className="relative h-[49px] w-[49px]">
+                  <div className="relative h-[49px] w-[49px]">
+                    {user.picture ? (
                       <img
                         src={user.picture}
                         alt={user.name || "User"}
-                        className="h-full w-full rounded-full border-2 border-white/20"
+                        className="h-full w-full rounded-full border-2 border-white/20 object-cover"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.startsWith("data:image/svg+xml")) {
+                            console.error(
+                              "Failed to load user picture:",
+                              user.picture,
+                            );
+                            // Replace with fallback avatar
+                            target.src = `data:image/svg+xml,${encodeURIComponent(
+                              `<svg xmlns="http://www.w3.org/2000/svg" width="49" height="49" viewBox="0 0 49 49">
+                                <circle cx="24.5" cy="24.5" r="24.5" fill="rgba(255,255,255,0.2)"/>
+                                <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="20" font-family="Arial, sans-serif" font-weight="600">${(user.name || "U").charAt(0).toUpperCase()}</text>
+                              </svg>`,
+                            )}`;
+                          }
+                        }}
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center rounded-full border-2 border-white/20 bg-[rgba(255,255,255,0.2)]">
+                        <span className="font-poppins text-lg font-semibold text-white">
+                          {(user.name || "U").charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <div className="text-right">
                     <p className="font-poppins text-sm font-medium text-white">
                       {user.name}
@@ -99,10 +122,11 @@ function FeedPage({
           <footer className="mt-auto py-6 text-center text-xs text-white/50">
             © 2025 Daily Gratitude Notes
           </footer>
-
-          {enableFeedback && <FeedbackButton />}
         </div>
       </div>
+
+      {/* Feedback button - outside content container to ensure fixed positioning */}
+      {enableFeedback && <FeedbackButton />}
     </div>
   );
 }

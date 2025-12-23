@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { submitFeedback } from "../../api/notes";
 import { FeedbackModal } from "./FeedbackModal";
+
+const feedbackIconUrl = "/assets/icons/feedback-icon.svg";
 
 /**
  * Optional feedback button for UI/UX testing
@@ -74,15 +77,22 @@ export function FeedbackButton() {
 
   return (
     <>
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="font-poppins fixed bottom-6 right-6 z-50 rounded-[16px] bg-[rgba(42,37,88,0.85)] px-4 py-2 text-sm font-medium text-white shadow-[0px_10px_30px_0px_rgba(0,0,0,0.25)] transition-all hover:bg-[rgba(42,37,88,0.95)] hover:shadow-[0px_10px_30px_0px_rgba(0,0,0,0.35)]"
-          title="Share feedback"
-        >
-          💬 Feedback
-        </button>
-      )}
+      {!isOpen &&
+        createPortal(
+          <button
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-full border-2 border-solid border-white bg-transparent transition-all hover:bg-[rgba(255,255,255,0.1)]"
+            style={{ width: "70px", height: "70px", padding: "15px" }}
+            title="Share feedback"
+          >
+            <img
+              src={feedbackIconUrl}
+              alt="Feedback"
+              className="h-[38px] w-[38px]"
+            />
+          </button>,
+          document.body,
+        )}
 
       <FeedbackModal
         isOpen={isOpen}
