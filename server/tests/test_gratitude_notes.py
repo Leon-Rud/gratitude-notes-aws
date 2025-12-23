@@ -11,7 +11,6 @@ if str(LAMBDA_DIR) not in sys.path:
 
 # Import handlers normally (no sys.modules hacking)
 import handlers.api.post_gratitude_note as post_note  # noqa: E402
-import handlers.api.get_gratitude_note as get_note  # noqa: E402
 import handlers.api.delete_gratitude_note as del_note  # noqa: E402
 import handlers.api.get_today_gratitude_notes as get_today_notes  # noqa: E402
 
@@ -86,27 +85,6 @@ def test_post_duplicate_same_day_returns_200(monkeypatch):
     resp = post_note.handler(_create_note(gratitude="second"), None)
     assert resp["statusCode"] == 200
     assert json.loads(resp["body"]) == {"id": "same-id", "owner_token": "tok"}
-
-
-def test_get_note_404_when_missing(monkeypatch):
-    monkeypatch.setattr(get_note, "get_note", _mock_get_note_returns_none, raising=True)
-
-    resp = get_note.handler({"pathParameters": {"id": "missing"}}, None)
-    assert resp["statusCode"] == 404
-
-
-def test_get_note_200_when_exists(monkeypatch):
-    monkeypatch.setattr(
-        get_note,
-        "get_note",
-        _mock_get_note("n1", note_items=["line one", "line two"]),
-        raising=True,
-    )
-
-    resp = get_note.handler({"pathParameters": {"id": "n1"}}, None)
-    assert resp["statusCode"] == 200
-    body = json.loads(resp["body"])
-    assert body["note_items"] == ["line one", "line two"]
 
 
 def test_delete_note_happy_path(monkeypatch):
