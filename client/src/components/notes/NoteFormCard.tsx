@@ -114,17 +114,11 @@ export function NoteFormCard({
         }
       >
         <form
-          className="flex flex-col gap-[13px]"
+          className="relative flex flex-col gap-[13px]"
           onSubmit={onSubmit}
           aria-busy={isLoading}
         >
-          <div className="relative flex flex-col gap-[8px]">
-            <label
-              htmlFor="gratitude"
-              className="font-poppins text-[14px] font-normal uppercase leading-[21px] text-[rgba(255,255,255,0.7)]"
-            >
-              Note
-            </label>
+          <div className="relative flex flex-col">
             <div className="relative">
               <textarea
                 id="gratitude"
@@ -152,7 +146,7 @@ export function NoteFormCard({
             </div>
           </div>
           {error && (
-            <p className="font-poppins text-[14px] font-normal leading-[21px] text-[#eb4cd8]">
+            <p className="font-poppins absolute left-0 top-[calc(240px+13px)] text-[14px] font-normal leading-[21px] text-[#eb4cd8]">
               {error}
             </p>
           )}

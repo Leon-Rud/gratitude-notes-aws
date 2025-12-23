@@ -202,7 +202,7 @@ export function PublicFeed() {
         >
           <p className="font-poppins absolute left-1/2 top-[24px] w-[282px] -translate-x-1/2 text-center text-[20px] font-normal leading-[1.2] text-white">
             {addButtonDisabled
-              ? "One gratitude a day 🌿"
+              ? "One gratitude note a day 🌿"
               : "Add your gratitude note"}
           </p>
           <div className="absolute left-1/2 top-1/2 h-[80px] w-[80px] -translate-x-1/2 -translate-y-1/2">
