@@ -1,4 +1,5 @@
 # Daily Gratitude Notes
+** 🚧 This is an ongoing project and still under active development. **
 
 A full-stack portfolio demo that lets people share a short list of daily gratitudes and automatically archive the day's notes at 23:00 (Asia/Jerusalem timezone). The project uses a React/Vite SPA for the client and an AWS SAM stack (API Gateway + Lambda + DynamoDB + EventBridge + Step Functions + SES) for the backend.
 
