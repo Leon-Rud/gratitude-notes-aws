@@ -145,23 +145,6 @@ Resources:
             Path: /gratitude-notes/today
             Method: get
 
-  GetGratitudeNoteFn:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: Get a specific gratitude note by ID.
-      Handler: handlers.api.get_gratitude_note.handler
-      CodeUri: ../lambdas
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref GratitudeNotesTable
-      Events:
-        GetGratitudeNote:
-          Type: Api
-          Properties:
-            RestApiId: !Ref GratitudeApi
-            Path: /gratitude-notes/{id}
-            Method: get
-
   DeleteGratitudeNoteFn:
     Type: AWS::Serverless::Function
     Properties:

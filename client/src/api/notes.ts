@@ -52,14 +52,6 @@ export async function getTodayNotes(): Promise<TodayNotesResponse> {
   };
 }
 
-export async function getNote(id: string): Promise<GratitudeNote> {
-  const { data } = await callApi<RawNote>(
-    `/gratitude-notes/${encodeURIComponent(id)}`,
-    "GET",
-  );
-  return mapNote(data);
-}
-
 export async function deleteNote(id: string, token: string) {
   const params = new URLSearchParams();
   params.append("token", token);
