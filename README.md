@@ -1,202 +1,163 @@
 # Daily Gratitude Notes
-** 🚧 This is an ongoing project and still under active development. **
 
-A full-stack portfolio demo that lets people share a short list of daily gratitudes and automatically archive the day's notes at 23:00 (Asia/Jerusalem timezone). The project uses a React/Vite SPA for the client and an AWS SAM stack (API Gateway + Lambda + DynamoDB + EventBridge + Step Functions + SES) for the backend.
+**🚧 This is an ongoing project and still under active development.**
 
-## Architecture Overview
+A full-stack serverless application for sharing daily gratitude notes with automatic archiving and event-driven observability.
 
-```
-┌─────────────┐
-│   Browser   │
-│  (React)    │
-└──────┬──────┘
-       │ HTTPS
-       ▼
-┌─────────────────┐
-│  API Gateway    │
-│  /gratitude-notes│
-└──────┬──────────┘
-       │
-       ├──► POST /gratitude-notes ──► Lambda ──► DynamoDB
-       ├──► GET /gratitude-notes/today ──► Lambda ──► DynamoDB
-       ├──► GET /gratitude-notes/{id} ──► Lambda ──► DynamoDB
-       ├──► DELETE /gratitude-notes/{id} ──► Lambda ──► DynamoDB
-       └──► POST /feedback ──► Lambda ──► SES (email)
+## Table of Contents
 
-┌──────────────────┐
-│ EventBridge      │
-│ Scheduler        │
-│ (23:00 daily)    │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│ Step Functions   │
-│ (Archive Workflow)│
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│ Lambda           │
-│ (Archive Notes)  │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│ DynamoDB         │
-│ (gratitude_notes)│
-└──────────────────┘
-```
+- [Architecture](#architecture)
+- [Quickstart](#quickstart)
+- [API Reference](#api-reference)
+- [Event-Driven Workflow](#event-driven-workflow)
+- [Observability](#observability)
+- [Testing](#testing)
+- [Deployment](#deployment)
 
-- **API Gateway (`/gratitude-notes`)** – public REST interface handled by Lambda functions:
-  - `POST /gratitude-notes` – create a note (name, email, gratitude text)
-  - `GET /gratitude-notes/today` – list today's notes (newest first)
-  - `GET /gratitude-notes/{id}` – fetch a note
-  - `DELETE /gratitude-notes/{id}?token=OWNER_TOKEN` – delete/withdraw a note via the owner token
-  - `POST /feedback` – send UI/UX feedback to the developer
-- **DynamoDB tables** – `gratitude_notes` (notes)
-- **EventBridge Scheduler + Step Functions** – handles scheduled archiving:
-  - A scheduled AWS Scheduler rule fires at 23:00 (configurable timezone) → Step Function workflow marks the day's notes as `deleted`
-  - Step Functions orchestrates the archive workflow: PrepareEvent → RouteEvent → ArchiveNotes
-- **CloudWatch dashboard** – monitors note creation, Lambda errors/duration, API Gateway metrics, and the Step Function health
-- **SES (eu-west-1 sandbox)** – sends feedback emails to the developer
+<a id="architecture"></a>
 
-_No API keys are required. The legacy customer-ID workflow has been fully removed and everything in the stack is now dedicated to the gratitude notes experience._
+## 📐 Architecture
 
-## Backend (SAM) Setup
+### System Architecture
+
+![Architecture Diagram](docs/architecture/architecture-diagram.png)
+
+_High-level system architecture showing API Gateway, Lambda functions, DynamoDB, EventBridge, and Step Functions integration._
+
+### Workflow Orchestration
+
+![Step Functions Workflow](docs/architecture/step-functions-workflow.png)
+
+_Step Functions state machine orchestrating archive and observability workflows._
+
+### Monitoring & Observability
+
+![CloudWatch Monitoring Dashboard](docs/architecture/cloudwatch-dashboard.png)
+
+_Real-time CloudWatch dashboard tracking note lifecycle events and system health._
+
+**Components:**
+
+- **API Gateway** – REST endpoints (`/gratitude-notes`, `/feedback`)
+- **Lambda Functions** – `PostGratitudeNotesFn`, `GetTodayGratitudeNotesFn`, `DeleteGratitudeNoteFn`, `PostFeedbackFn`
+- **DynamoDB** – `gratitude_notes` table (TTL: 7 days)
+- **Step Functions** – `GratitudeWorkflow` orchestrates archive and observability workflows
+- **EventBridge** – Routes note lifecycle events to Step Functions via `NoteEventRule`
+- **CloudWatch** – Custom metrics (`DailyGratitude` namespace) and dashboard (`Gratitude-notes-workflow-monitor`)
+
+<a id="quickstart"></a>
+
+## 🚀 Quickstart
+
+### Backend
 
 ```bash
-./scripts/deploy_backend.sh          # default stack name `daily-gratitude`
-# or run manually:
-# sam build -t server/infra/template.yaml
-# sam deploy -t server/infra/template.yaml --guided --stack-name daily-gratitude
+./scripts/deploy_backend.sh  # Deploys to eu-west-1, stack: daily-gratitude
 ```
 
-Script highlights:
+The script outputs `GratitudeApiBaseUrl` for frontend configuration.
 
-- Validates & builds the SAM template (`server/infra/template.yaml`)
-- Deploys to `eu-west-1` by default
-- Prints the CloudFormation output `GratitudeApiBaseUrl`
-- Exports helper env vars: `export VITE_API_BASE_URL="<api-url>"` and intentionally unsets `VITE_API_KEY`
-
-Alternatively you can run `source scripts/capture_outputs.sh` to populate `client/.env.production` with the detected API base URL.
-
-### Infrastructure resources
-
-| Resource                             | Purpose                                                |
-| ------------------------------------ | ------------------------------------------------------ |
-| `PostGratitudeNotesFn`               | POST `/gratitude-notes`                                |
-| `GetTodayGratitudeNotesFn`           | GET `/gratitude-notes/today`                           |
-| `GetGratitudeNoteFn`                 | GET `/gratitude-notes/{id}`                            |
-| `DeleteGratitudeNoteFn`              | DELETE `/gratitude-notes/{id}`                         |
-| `PostFeedbackFn`                     | POST `/feedback`                                       |
-| `GratitudeWorkflow` (Step Functions) | handles `archive.nightly` scheduled archiving workflow |
-| `gratitude_notes` DynamoDB table     | note storage (TTL = 7 days)                            |
-| `DailyGratitudeDashboard`            | CloudWatch dashboard for metrics (TODO: re-implement)  |
-
-## Frontend Setup
+### Frontend
 
 ```bash
 cd client
 npm install
-npm run dev          # http://localhost:5173
+npm run dev  # http://localhost:5173
 ```
 
-Create `client/.env.local` (or set env vars before `npm run build`). You can copy `client/env.example`:
+Create `client/.env.local`:
 
 ```bash
-VITE_API_BASE_URL=https://xxxxxxxx.execute-api.eu-west-1.amazonaws.com/prod
+VITE_API_BASE_URL=https://xxxxx.execute-api.eu-west-1.amazonaws.com/prod
 VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
-# Optional: enable the in-app feedback button for testers
-# VITE_ENABLE_FEEDBACK=true
-# no API key is needed
 ```
 
-Google OAuth: add the following Authorized JavaScript origins in Google Cloud Console:
+<a id="api-reference"></a>
 
-- `http://localhost:5173`
-- Your deployed frontend URL (e.g., the S3 static site URL output by `deploy_frontend.sh`)
+## 📡 API Reference
 
-To enable the feedback widget for UI/UX sessions, set `VITE_ENABLE_FEEDBACK=true` and ensure the backend `/feedback` endpoint is deployed.
+| Method   | Path                                      | Description                                                                                                                      |
+| -------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `POST`   | `/gratitude-notes`                        | Upsert note (body: `{name, email, gratitudeText}`). Returns 201 if created, 200 if updated. Enforces one note per day per email. |
+| `GET`    | `/gratitude-notes/today`                  | List all active notes for today. Returns `{items: [{id, name, note_items, created_at}]}`                                         |
+| `DELETE` | `/gratitude-notes/{id}?token=OWNER_TOKEN` | Soft-delete note (sets `status=deleted`). Requires owner token from POST response.                                               |
+| `POST`   | `/feedback`                               | Send feedback email to developer (body: `{feedback}`). Requires SES sandbox verification.                                        |
 
-The SPA is a single hash-router page:
-
-- `#/` shows the form + today's public feed
-- `#/notes/{id}` shows a single note detail view
-
-## API Reference (public, no auth)
-
-| Method & Path                                    | Description                                                                      |
-| ------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `POST /gratitude-notes`                          | Body `{ name, email, gratitudeText }` → creates a note, enforces 1 per day/email |
-| `GET /gratitude-notes/today`                     | Returns `{ items: [{ id, name, note_items, created_at }] }`                      |
-| `GET /gratitude-notes/{id}`                      | Returns the note metadata unless it has been deleted/archived                    |
-| `DELETE /gratitude-notes/{id}?token=OWNER_TOKEN` | Marks the note as `deleted`                                                      |
-| `POST /feedback`                                 | Body `{ feedback }` → sends feedback email to the developer                      |
-
-### Example curl flow
+**Examples:**
 
 ```bash
-# Create a note
-curl -X POST "$GratitudeApiBaseUrl/gratitude-notes" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "name": "Alex",
-           "email": "alex@example.com",
-           "gratitudeText": "Morning coffee\nSupportive team\nA quiet walk"
-         }'
+# Create/update note
+curl -X POST "$API_BASE_URL/gratitude-notes" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alex","email":"alex@example.com","gratitudeText":"Morning coffee\nSupportive team"}'
 
-# Fetch today's feed
-curl "$GratitudeApiBaseUrl/gratitude-notes/today"
+# List today's notes
+curl "$API_BASE_URL/gratitude-notes/today"
 
-# Delete via owner token (returned in POST response)
-curl -X DELETE "$GratitudeApiBaseUrl/gratitude-notes/<NOTE_ID>?token=<OWNER_TOKEN>"
+# Delete note
+curl -X DELETE "$API_BASE_URL/gratitude-notes/{id}?token={owner_token}"
 ```
 
-## Event-Driven Workflow
+<a id="event-driven-workflow"></a>
 
-The Step Function workflow handles scheduled archiving:
+## 🔄 Event-Driven Workflow
 
-- **EventBridge Scheduler** triggers at 23:00 (configurable timezone, default: UTC)
-- **Step Functions Workflow** (`GratitudeWorkflow`):
-  1. `PrepareEvent` - Validates the archive event
-  2. `RouteEvent` - Routes to archive processing
-  3. `ArchiveNotes` - Queries `gratitude_notes` for the current date and sets `status = deleted, archived_at = now`
+The `GratitudeWorkflow` Step Functions state machine handles two workflows:
 
-View the execution history in Step Functions or the CloudWatch dashboard widgets to confirm the workflow is firing.
+**Archive Workflow:**
 
-## Testing
+- EventBridge Scheduler triggers at 23:00 (Asia/Jerusalem timezone)
+- Directly invokes Step Functions with `{"eventType":"archive.nightly"}`
+- Routes to `StepArchiveNotesFn` → marks day's notes as `deleted` in DynamoDB
 
-Backend unit tests rely on the fake fixtures in `server/tests/conftest.py`:
+**Observability Workflow:**
+
+- API handlers publish EventBridge events with `DetailType`: `gratitude.note.created`, `gratitude.note.updated`, `gratitude.note.deleted`
+- `NoteEventRule` matches these events and triggers Step Functions
+- `StepPrepareEventFn` normalizes events: extracts `eventType` from EventBridge `detail` JSON (e.g., `note.created`, `note.updated`, `note.deleted`)
+- Routes to `RecordNoteEventFn` → emits CloudWatch metrics
+
+**Event Naming:**
+
+- **EventBridge DetailType**: `gratitude.note.{created|updated|deleted}` (used in EventBridge rules)
+- **Step Functions eventType**: `note.{created|updated|deleted}` (normalized by `StepPrepareEventFn`)
+- **CloudWatch MetricName**: `NoteCreated`, `NoteUpdated`, `NoteDeleted` (namespace: `DailyGratitude`)
+
+<a id="observability"></a>
+
+## 📊 Observability
+
+**CloudWatch Custom Metrics** (namespace: `DailyGratitude`):
+
+- `NoteCreated` – dimension: `EventType=note.created`
+- `NoteUpdated` – dimension: `EventType=note.updated`
+- `NoteDeleted` – dimension: `EventType=note.deleted`
+
+**Dashboard** (`Gratitude-notes-workflow-monitor`):
+
+- Total today summary (created/updated/deleted counts)
+- Activity over time (time-series graph)
+- Lambda errors (24h)
+
+<a id="testing"></a>
+
+## 🧪 Testing
 
 ```bash
-python -m pytest server/tests/test_gratitude_notes.py   # install pytest first if needed
+python -m pytest server/tests/test_gratitude_notes.py
 ```
 
-The test suite covers creating notes, listing today's feed, sending feedback, deleting notes, and running the nightly archive handler.
+Tests cover: note creation/updates, listing, deletion, and archive handler. Tests are self-contained (no `conftest.py`).
 
-## CloudWatch Dashboard
+<a id="deployment"></a>
 
-`DailyGratitudeDashboard` surfaces:
+## 📦 Deployment
 
-- Notes created and emails sent (namespace `DailyGratitude`)
-- Lambda errors/duration for the gratitude functions
-- API Gateway 4XX/5XX + latency
-- DynamoDB read/write capacity for `gratitude_notes`
+| Script                         | Purpose                                          |
+| ------------------------------ | ------------------------------------------------ |
+| `./scripts/deploy_backend.sh`  | Builds & deploys SAM stack, prints API URL       |
+| `./scripts/capture_outputs.sh` | Exports API base URL to `client/.env.production` |
+| `./scripts/deploy_frontend.sh` | Builds SPA and uploads to S3/CloudFront          |
 
-_Note: Dashboard is currently disabled (TODO: re-implement with correct metric structure)_
-
-## Deployment Scripts Recap
-
-| Script                         | Purpose                                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------------- |
-| `./scripts/deploy_backend.sh`  | Builds & deploys SAM stack (`daily-gratitude`), prints API URL, unsets `VITE_API_KEY` |
-| `./scripts/capture_outputs.sh` | Helper to export the API base URL and regenerate `client/.env.production`             |
-| `./scripts/deploy_frontend.sh` | Builds the SPA and uploads to S3/CloudFront (only needs `VITE_API_BASE_URL`)          |
-
-## Notes
-
-- SES is still in sandbox mode (verified sender email required). Use verified recipient emails or upgrade your SES account before demoing.
-- `gratitude_notes` TTL is set to 7 days; archived notes remain queryable (with `status = deleted`) until the TTL expires.
-- The previous customer-ID API, API keys, and unsubscribe flows have been removed; every Lambda now serves the gratitude notes experience.
-- Archive schedule runs at 23:00 in Asia/Jerusalem timezone (configured via AWS Scheduler).
+**Region:** `eu-west-1`  
+**Stack Name:** `daily-gratitude`
