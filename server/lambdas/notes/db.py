@@ -39,29 +39,37 @@ def _build_note_item(normalized: Dict[str, Any], date_str: str) -> Dict[str, Any
     }
 
 
-def create_or_replace_note(
+def create_or_update_note(
     normalized: Dict[str, Any],
     *,
     date_str: str,
     now_iso: Optional[str] = None,
+    note_id: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], bool]:
     """
     Single entry point for the POST note handler.
 
     Returns (note_item, created_bool).
-    - If a note exists for (email, date), updates it and returns created=False.
-    - Otherwise creates a new note and returns created=True.
+    - If note_id is provided: updates that note by ID (fails if not found or deleted).
+    - If note_id is not provided: creates a new note.
 
     This function exists mainly to provide a single seam for unit tests
     (so tests don't need to patch multiple DB helpers).
     """
     now_iso = now_iso or datetime.now(timezone.utc).isoformat()
-    existing = find_note_for_day(normalized["email"], date_str)
-    if existing:
-        update_note_text(existing["id"], normalized["gratitude_text"], now_iso=now_iso)
+    
+    # If ID provided, update by ID
+    if note_id:
+        existing = get_note(note_id)
+        if not existing:
+            raise ValueError(f"Note {note_id} not found")
+        if existing.get("status") == "deleted":
+            raise ValueError(f"Note {note_id} is deleted and cannot be updated")
+        update_note_text(note_id, normalized["gratitude_text"], now_iso=now_iso)
         merged = {**existing, "gratitude_text": normalized["gratitude_text"]}
         return merged, False
 
+    # No ID provided: create new note
     item = _build_note_item(normalized, date_str)
     put_note(item)
     return item, True
@@ -79,27 +87,6 @@ def put_note(item: Dict[str, Any]) -> None:
             raise NoteAlreadyExistsError(item["id"]) from err
         log_event("put_note_dynamo_error", {"id": item.get("id"), "code": code})
         raise
-
-
-def find_note_for_day(email: str, date_str: str) -> Optional[Dict[str, Any]]:
-    """Find the active note for a given email and date. Returns None if not found."""
-    try:
-        resp = TABLE.query(
-            IndexName="gsi_email_date",
-            KeyConditionExpression=Key("email").eq(email) & Key("date").eq(date_str),
-            Limit=1,
-            ScanIndexForward=False,
-        )
-        items = resp.get("Items", [])
-        if items and items[0].get("status") != "deleted":
-            return items[0]
-        return None
-    except Exception as err:  # pylint: disable=broad-except
-        log_event(
-            "find_note_for_day_error",
-            {"email": email, "date": date_str, "error": str(err)},
-        )
-        return None
 
 
 def update_note_text(note_id: str, gratitude_text: str, *, now_iso: Optional[str] = None) -> None:

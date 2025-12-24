@@ -75,6 +75,7 @@ export function NoteFormCard({
         name: user.name.trim(),
         email: user.email.trim(),
         gratitudeText,
+        id: editingNote?.id,
       });
       // After creating note:
       localStorage.setItem(`gratitude-note-${result.id}`, "owner");

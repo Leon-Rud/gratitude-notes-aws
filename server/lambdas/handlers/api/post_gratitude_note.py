@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 
-from notes.db import create_or_replace_note
+from notes.db import create_or_update_note
 from shared.config import EVENT_BUS_NAME, events_client
 from shared.api_gateway import json_response, load_json_body
 from shared.logging import log_event
@@ -61,13 +61,19 @@ def handler(event, _context):
 
     now = datetime.now(timezone.utc)
     date_str = now.date().isoformat()
+    note_id = body.get("id")  # Optional ID for editing
 
     try:
-        item, created = create_or_replace_note(
+        item, created = create_or_update_note(
             normalized,
             date_str=date_str,
             now_iso=now.isoformat(),
+            note_id=note_id,
         )
+    except ValueError as err:
+        # Note not found or deleted
+        log_event("put_note_not_found", {"id": note_id, "error": str(err)})
+        return json_response(404, {"message": str(err)})
     except Exception as err:  # pylint: disable=broad-except
         log_event("put_note_store_failed", {"error": str(err)})
         return json_response(500, {"message": "Failed to save gratitude note."})

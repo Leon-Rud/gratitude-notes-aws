@@ -2,6 +2,7 @@ export type GratitudeNoteInput = {
   name: string;
   email: string;
   gratitudeText: string;
+  id?: string; // Optional ID for editing existing notes
 };
 
 export type GratitudeNote = {

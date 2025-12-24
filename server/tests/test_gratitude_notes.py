@@ -15,14 +15,19 @@ import handlers.api.delete_gratitude_note as del_note  # noqa: E402
 import handlers.api.get_today_gratitude_notes as get_today_notes  # noqa: E402
 
 
-def _create_note(name="Test User", email="test@example.com", gratitude="line one\nline two"):
-    return {"body": json.dumps({"name": name, "email": email, "gratitudeText": gratitude})}
+def _create_note(name="Test User", email="test@example.com", gratitude="line one\nline two", note_id=None):
+    body = {"name": name, "email": email, "gratitudeText": gratitude}
+    if note_id:
+        body["id"] = note_id
+    return {"body": json.dumps(body)}
 
 
-def _mock_create_or_replace_note(note_id="123", owner_token="tok", created=True):
-    """Helper to create a mock create_or_replace_note function."""
-    def fake(_normalized, *, date_str, now_iso=None):
-        return ({"id": note_id, "owner_token": owner_token}, created)
+def _mock_create_or_update_note(mock_note_id="123", owner_token="tok", created=True):
+    """Helper to create a mock create_or_update_note function."""
+    def fake(_normalized, *, date_str, now_iso=None, note_id=None):
+        # If note_id parameter is provided, use it; otherwise use the mock_note_id from closure
+        result_id = note_id if note_id is not None else mock_note_id
+        return ({"id": result_id, "owner_token": owner_token}, created)
     return fake
 
 
@@ -66,8 +71,8 @@ def _disable_event_publishing(monkeypatch):
 def test_post_creates_note_201(monkeypatch):
     monkeypatch.setattr(
         post_note, 
-        "create_or_replace_note", 
-        _mock_create_or_replace_note(note_id="123", created=True),
+        "create_or_update_note", 
+        _mock_create_or_update_note(mock_note_id="123", created=True),
         raising=True
     )
 
@@ -76,11 +81,12 @@ def test_post_creates_note_201(monkeypatch):
     assert json.loads(resp["body"]) == {"id": "123", "owner_token": "tok"}
 
 
-def test_post_duplicate_same_day_returns_200(monkeypatch):
+def test_post_update_by_id_returns_200(monkeypatch):
+    """Test that posting with an ID updates the existing note and returns 200."""
     monkeypatch.setattr(
         post_note,
-        "create_or_replace_note",
-        _mock_create_or_replace_note(note_id="same-id", created=False),
+        "create_or_update_note",
+        _mock_create_or_update_note(mock_note_id="existing-id", created=False),
         raising=True
     )
 
@@ -90,13 +96,13 @@ def test_post_duplicate_same_day_returns_200(monkeypatch):
     
     monkeypatch.setattr(post_note, "_publish_note_event", capture_publish_note_event, raising=True)
 
-    resp = post_note.handler(_create_note(gratitude="second"), None)
+    resp = post_note.handler(_create_note(gratitude="updated text", note_id="existing-id"), None)
     assert resp["statusCode"] == 200
-    assert json.loads(resp["body"]) == {"id": "same-id", "owner_token": "tok"}
+    assert json.loads(resp["body"]) == {"id": "existing-id", "owner_token": "tok"}
     # Verify note.updated event was published
     assert len(events_published) == 1
     assert events_published[0]["eventType"] == "note.updated"
-    assert events_published[0]["note"]["id"] == "same-id"
+    assert events_published[0]["note"]["id"] == "existing-id"
 
 
 def test_delete_note_happy_path(monkeypatch):

@@ -27,11 +27,15 @@ function mapNote(raw: RawNote): GratitudeNote {
 }
 
 export async function createGratitudeNote(input: GratitudeNoteInput) {
-  const payload = {
+  const payload: any = {
     name: input.name,
     email: input.email,
     gratitudeText: input.gratitudeText,
   };
+  // Include ID if provided (for editing)
+  if (input.id) {
+    payload.id = input.id;
+  }
   const { data, status } = await callApi<CreateNoteResponse>(
     "/gratitude-notes",
     "POST",
