@@ -50,10 +50,10 @@ def handler(event: Dict[str, Any], _context) -> Dict[str, Any]:
     # For note lifecycle events, include noteId and other fields from detail
     if event_type in ["note.created", "note.updated"]:
         normalized["noteId"] = detail_data.get("noteId")
-        if "noteItems" in detail_data:
-            normalized["noteItems"] = detail_data["noteItems"]
+        if "gratitudeText" in detail_data:
+            normalized["gratitudeText"] = detail_data["gratitudeText"]
     elif event_type == "note.deleted":
-        # For deleted events, only include noteId (no noteItems needed)
+        # For deleted events, only include noteId (no gratitudeText needed)
         normalized["noteId"] = detail_data.get("noteId")
 
     log_event("step_prepare_event", {"eventType": event_type, "normalized": normalized})

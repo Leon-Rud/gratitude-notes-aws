@@ -21,18 +21,18 @@ def _create_note(name="Test User", email="test@example.com", gratitude="line one
 
 def _mock_create_or_replace_note(note_id="123", owner_token="tok", created=True):
     """Helper to create a mock create_or_replace_note function."""
-    def fake(_normalized, *, date_str, now_iso=None, allow_multiple_per_day=False):
+    def fake(_normalized, *, date_str, now_iso=None):
         return ({"id": note_id, "owner_token": owner_token}, created)
     return fake
 
 
-def _mock_get_note(note_id, note_items=None, status="active", owner_token="tok"):
+def _mock_get_note(note_id, gratitude_text="", status="active", owner_token="tok"):
     """Helper to create a mock get_note function."""
     def fake_get_note(_id):
         if _id == note_id:
             return {
                 "id": note_id,
-                "note_items": note_items,
+                "gratitude_text": gratitude_text,
                 "status": status,
                 "owner_token": owner_token,
             }
@@ -133,8 +133,8 @@ def test_delete_note_happy_path(monkeypatch):
 
 def test_today_feed_returns_items(monkeypatch):
     mock_notes = [
-        {"id": "b", "name": "Bob", "email": "b@x.com", "note_items": ["y"], "status": "active", "created_at": 2},
-        {"id": "a", "name": "Alice", "email": "a@x.com", "note_items": ["x"], "status": "active", "created_at": 1},
+        {"id": "b", "name": "Bob", "email": "b@x.com", "gratitude_text": "y", "status": "active", "created_at": 2},
+        {"id": "a", "name": "Alice", "email": "a@x.com", "gratitude_text": "x", "status": "active", "created_at": 1},
     ]
     
     def fake_list_notes_for_date(_date):

@@ -8,7 +8,7 @@ export type GratitudeNote = {
   id: string;
   name: string;
   email?: string;
-  gratitudeItems: string[];
+  gratitudeText: string;
   createdAt?: string;
   status?: string;
 };

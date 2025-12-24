@@ -11,7 +11,7 @@ def _public_fields(item: Dict[str, Any]) -> Dict[str, Any]:
         "id": item.get("id"),
         "name": item.get("name"),
         "email": item.get("email"),
-        "note_items": item.get("note_items", []),
+        "gratitude_text": item.get("gratitude_text", ""),
         "status": item.get("status"),
         "created_at": item.get("created_at_iso") or item.get("created_at"),
     }

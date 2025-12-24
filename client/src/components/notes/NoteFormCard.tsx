@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { createGratitudeNote, parseGratitudeText } from "../../api/notes";
+import { createGratitudeNote } from "../../api/notes";
 import type { GratitudeNote } from "../../api/types";
 
 type NoteFormCardProps = {
@@ -20,8 +20,7 @@ export function NoteFormCard({
   // Pre-fill form when editing
   useEffect(() => {
     if (editingNote) {
-      // Join gratitude items with newlines for editing
-      setGratitudeText(editingNote.gratitudeItems.join("\n"));
+      setGratitudeText(editingNote.gratitudeText);
     } else {
       setGratitudeText("");
     }
@@ -56,8 +55,6 @@ export function NoteFormCard({
     if (gratitudeText.trim().length === 0) return "Please write a few words.";
     if (gratitudeText.length > MAX_LENGTH)
       return `Note must be ${MAX_LENGTH} characters or less.`;
-    const items = parseGratitudeText(gratitudeText);
-    if (items.length === 0) return "Add at least one gratitude item";
     return null;
   }
 

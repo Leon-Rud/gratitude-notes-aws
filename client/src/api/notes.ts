@@ -10,7 +10,7 @@ type RawNote = {
   id: string;
   name: string;
   email?: string;
-  note_items: string[];
+  gratitude_text: string;
   created_at: string;
   status: string;
 };
@@ -20,7 +20,7 @@ function mapNote(raw: RawNote): GratitudeNote {
     id: raw.id,
     name: raw.name,
     email: raw.email,
-    gratitudeItems: raw.note_items,
+    gratitudeText: raw.gratitude_text,
     createdAt: raw.created_at,
     status: raw.status,
   };
@@ -59,16 +59,6 @@ export async function deleteNote(id: string, token: string) {
   const path = `/gratitude-notes/${encodeURIComponent(id)}?${params.toString()}`;
   const { data } = await callApi<{ deleted?: boolean }>(path, "DELETE");
   return data;
-}
-
-export function parseGratitudeText(text: string): string[] {
-  return text
-    .split(/\r?\n/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => item.replace(/^[-•*]\s+/, "").trim())
-    .filter(Boolean)
-    .map((item) => (item.length > 150 ? item.slice(0, 150) : item));
 }
 
 export async function submitFeedback(feedbackText: string) {

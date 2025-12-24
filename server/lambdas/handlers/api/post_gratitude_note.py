@@ -1,19 +1,12 @@
 import json
-import os
 from datetime import datetime, timezone
 
 from notes.db import create_or_replace_note
-from notes.service import normalize_note_payload
 from shared.config import EVENT_BUS_NAME, events_client
 from shared.api_gateway import json_response, load_json_body
 from shared.logging import log_event
 
 EVENTS = events_client()
-
-# Local testing escape hatch:
-# Set ALLOW_MULTIPLE_NOTES_PER_DAY=true when running locally to bypass the "one per day" rule.
-# TODO: Remove this bypass before production deploy.
-ALLOW_MULTIPLE_NOTES_PER_DAY = os.environ.get("ALLOW_MULTIPLE_NOTES_PER_DAY", "").lower() == "true"
 
 
 def _publish_note_event(note: dict, event_type: str) -> None:
@@ -24,7 +17,7 @@ def _publish_note_event(note: dict, event_type: str) -> None:
     detail = {
         "eventType": event_type,
         "noteId": note["id"],
-        "noteItems": note.get("note_items", []),
+        "gratitudeText": note.get("gratitude_text", ""),
     }
     
     detail_type_map = {
@@ -58,7 +51,13 @@ def _publish_note_event(note: dict, event_type: str) -> None:
 
 def handler(event, _context):
     body = load_json_body(event)
-    normalized = normalize_note_payload(body)
+    
+    # Normalize payload: trim name/email, map gratitudeText to gratitude_text
+    normalized = {
+        "name": body["name"].strip(),
+        "email": body["email"].strip().lower(),
+        "gratitude_text": body["gratitudeText"],
+    }
 
     now = datetime.now(timezone.utc)
     date_str = now.date().isoformat()
@@ -68,7 +67,6 @@ def handler(event, _context):
             normalized,
             date_str=date_str,
             now_iso=now.isoformat(),
-            allow_multiple_per_day=ALLOW_MULTIPLE_NOTES_PER_DAY,
         )
     except Exception as err:  # pylint: disable=broad-except
         log_event("put_note_store_failed", {"error": str(err)})
