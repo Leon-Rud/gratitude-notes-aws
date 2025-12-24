@@ -58,9 +58,7 @@ def _publish_note_event(note: dict, event_type: str) -> None:
 
 def handler(event, _context):
     body = load_json_body(event)
-    normalized, error = normalize_note_payload(body)
-    if error:
-        return json_response(400, {"message": error})
+    normalized = normalize_note_payload(body)
 
     now = datetime.now(timezone.utc)
     date_str = now.date().isoformat()
