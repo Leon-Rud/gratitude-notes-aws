@@ -3,21 +3,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: Daily Gratitude Notes – SAM stack (API Gateway, Lambda, DynamoDB, EventBridge, Step Functions, SES).
 
 Parameters:
-  LinkedInUrl:
-    Type: String
-    Default: "https://linkedin.com/in/yourprofile"
-    Description: Your LinkedIn profile URL
-  GitHubUrl:
-    Type: String
-    Default: "https://github.com/yourusername"
-    Description: Your GitHub profile URL
   SenderEmail:
     Type: String
     Default: "your-email@example.com"
     Description: SES-verified sender email address (must be verified in AWS SES before deployment)
   ArchiveTimeZone:
     Type: String
-    Default: "UTC"
+    Default: "Asia/Jerusalem"
     Description: IANA timezone for nightly deletion (e.g. "Europe/London", "Asia/Jerusalem"). Scheduler uses this to run at 23:00 local time.
 
 Globals:
@@ -106,6 +98,22 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref GratitudeNotesTable
 
+  RecordNoteEventFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Step Function task that records note lifecycle events to CloudWatch
+      Handler: handlers.events.step_record_note_event.handler
+      CodeUri: ../lambdas
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: "*"
+              Condition:
+                StringEquals:
+                  cloudwatch:Namespace: DailyGratitude
+
   PostGratitudeNotesFn:
     Type: AWS::Serverless::Function
     Properties:
@@ -154,6 +162,11 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref GratitudeNotesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: "*"
       Events:
         DeleteGratitudeNote:
           Type: Api
@@ -232,7 +245,7 @@ Resources:
     Properties:
       Name: !Sub ${AWS::StackName}-gratitude-workflow
       Definition:
-        Comment: Handle nightly archive workflow for gratitude notes.
+        Comment: Handle nightly archive workflow and note lifecycle observability for gratitude notes.
         StartAt: PrepareEvent
         States:
           PrepareEvent:
@@ -245,10 +258,24 @@ Resources:
               - Variable: $.eventType
                 StringEquals: "archive.nightly"
                 Next: ArchiveNotes
+              - Variable: $.eventType
+                StringEquals: "note.created"
+                Next: RecordNoteEvent
+              - Variable: $.eventType
+                StringEquals: "note.updated"
+                Next: RecordNoteEvent
+              - Variable: $.eventType
+                StringEquals: "note.deleted"
+                Next: RecordNoteEvent
             Default: UnknownEvent
           ArchiveNotes:
             Type: Task
             Resource: ${ArchiveFnArn}
+            ResultPath: "$"
+            End: true
+          RecordNoteEvent:
+            Type: Task
+            Resource: ${RecordNoteEventFnArn}
             ResultPath: "$"
             End: true
           UnknownEvent:
@@ -258,11 +285,14 @@ Resources:
       DefinitionSubstitutions:
         PrepareFnArn: !GetAtt StepPrepareEventFn.Arn
         ArchiveFnArn: !GetAtt StepArchiveNotesFn.Arn
+        RecordNoteEventFnArn: !GetAtt RecordNoteEventFn.Arn
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref StepPrepareEventFn
         - LambdaInvokePolicy:
             FunctionName: !Ref StepArchiveNotesFn
+        - LambdaInvokePolicy:
+            FunctionName: !Ref RecordNoteEventFn
         - Statement:
             - Effect: Allow
               Action:
@@ -342,6 +372,24 @@ Resources:
           Id: GratitudeArchiveTarget
           RoleArn: !GetAtt GratitudeWorkflowInvokeRole.Arn
           Input: '{"eventType":"archive.nightly"}'
+
+  NoteEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${AWS::StackName}-note-events
+      Description: Trigger Step Functions workflow on note lifecycle events for observability
+      EventPattern:
+        source:
+          - "gratitude.note"
+        detail-type:
+          - "gratitude.note.created"
+          - "gratitude.note.updated"
+          - "gratitude.note.deleted"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt GratitudeWorkflow.Arn
+          Id: NoteEventTarget
+          RoleArn: !GetAtt GratitudeWorkflowInvokeRole.Arn
 
   GratitudeWorkflowFailureAlarm:
     Type: AWS::CloudWatch::Alarm

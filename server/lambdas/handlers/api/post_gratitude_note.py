@@ -16,32 +16,43 @@ EVENTS = events_client()
 ALLOW_MULTIPLE_NOTES_PER_DAY = os.environ.get("ALLOW_MULTIPLE_NOTES_PER_DAY", "").lower() == "true"
 
 
-def _publish_created_event(note: dict) -> None:
+def _publish_note_event(note: dict, event_type: str) -> None:
     """
-    Publish a gratitude.note.created event to EventBridge.
-    This event will be used by future features (e.g., streak tracking).
+    Publish a note lifecycle event (note.created or note.updated) to EventBridge.
+    This event will be used for observability and future features (e.g., streak tracking).
     """
     detail = {
-        "eventType": "note.created",
+        "eventType": event_type,
         "noteId": note["id"],
         "noteItems": note.get("note_items", []),
     }
+    
+    detail_type_map = {
+        "note.created": "gratitude.note.created",
+        "note.updated": "gratitude.note.updated",
+    }
+    
+    detail_type = detail_type_map.get(event_type)
+    if not detail_type:
+        log_event("post_note_event_invalid_type", {"eventType": event_type, "noteId": note["id"]})
+        return
+    
     try:
         EVENTS.put_events(
             Entries=[
                 {
                     "Source": "gratitude.note",
-                    "DetailType": "gratitude.note.created",
+                    "DetailType": detail_type,
                     "Detail": json.dumps(detail),
                     "EventBusName": EVENT_BUS_NAME,
                 }
             ]
         )
-        log_event("post_note_event_emitted", {"noteId": note["id"], "detailType": "gratitude.note.created"})
+        log_event("post_note_event_emitted", {"noteId": note["id"], "detailType": detail_type, "eventType": event_type})
     except Exception as err:  # pylint: disable=broad-except
         log_event(
             "post_note_event_error",
-            {"noteId": note["id"], "detailType": "gratitude.note.created", "error": str(err)},
+            {"noteId": note["id"], "detailType": detail_type, "eventType": event_type, "error": str(err)},
         )
 
 
@@ -66,7 +77,10 @@ def handler(event, _context):
         return json_response(500, {"message": "Failed to save gratitude note."})
 
     log_event("put_note_created" if created else "put_note_replaced", {"id": item["id"]})
-    _publish_created_event(item)
+    
+    # Emit appropriate event based on whether note was created or updated
+    event_type = "note.created" if created else "note.updated"
+    _publish_note_event(item, event_type)
 
     return json_response(201 if created else 200, {"id": item["id"], "owner_token": item.get("owner_token")})
 

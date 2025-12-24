@@ -41,7 +41,7 @@ def _mock_get_note(note_id, note_items=None, status="active", owner_token="tok")
     return fake_get_note
 
 
-def _noop_publish_created_event(*_args, **_kwargs):
+def _noop_publish_note_event(*_args, **_kwargs):
     """No-op function to disable event publishing in tests."""
     return None
 
@@ -57,8 +57,10 @@ def _disable_event_publishing(monkeypatch):
     We don't test EventBridge here. If the handler publishes events, no-op it.
     If your handler doesn't have this function, the patch is skipped.
     """
-    if hasattr(post_note, "_publish_created_event"):
-        monkeypatch.setattr(post_note, "_publish_created_event", _noop_publish_created_event, raising=True)
+    if hasattr(post_note, "_publish_note_event"):
+        monkeypatch.setattr(post_note, "_publish_note_event", _noop_publish_note_event, raising=True)
+    if hasattr(del_note, "_publish_deleted_event"):
+        monkeypatch.setattr(del_note, "_publish_deleted_event", _noop_publish_note_event, raising=True)
 
 
 def test_post_creates_note_201(monkeypatch):
@@ -82,9 +84,19 @@ def test_post_duplicate_same_day_returns_200(monkeypatch):
         raising=True
     )
 
+    events_published = []
+    def capture_publish_note_event(note, event_type):
+        events_published.append({"note": note, "eventType": event_type})
+    
+    monkeypatch.setattr(post_note, "_publish_note_event", capture_publish_note_event, raising=True)
+
     resp = post_note.handler(_create_note(gratitude="second"), None)
     assert resp["statusCode"] == 200
     assert json.loads(resp["body"]) == {"id": "same-id", "owner_token": "tok"}
+    # Verify note.updated event was published
+    assert len(events_published) == 1
+    assert events_published[0]["eventType"] == "note.updated"
+    assert events_published[0]["note"]["id"] == "same-id"
 
 
 def test_delete_note_happy_path(monkeypatch):
@@ -102,12 +114,21 @@ def test_delete_note_happy_path(monkeypatch):
     
     monkeypatch.setattr(del_note, "mark_deleted", fake_mark_deleted, raising=True)
 
+    events_published = []
+    def capture_publish_deleted_event(note_id):
+        events_published.append({"noteId": note_id})
+    
+    monkeypatch.setattr(del_note, "_publish_deleted_event", capture_publish_deleted_event, raising=True)
+
     resp = del_note.handler(
         {"pathParameters": {"id": "n1"}, "queryStringParameters": {"token": "tok"}},
         None,
     )
     assert resp["statusCode"] == 200
     assert mark_deleted_called == ["n1"]
+    # Verify note.deleted event was published
+    assert len(events_published) == 1
+    assert events_published[0]["noteId"] == "n1"
 
 
 def test_today_feed_returns_items(monkeypatch):
