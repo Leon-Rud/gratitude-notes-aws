@@ -5,6 +5,7 @@ import { AboutPage } from "./pages/AboutPage";
 import { PublicFeed } from "./components/notes/PublicFeed";
 import { FeedbackButton } from "./components/feedback";
 import { UiKitPreview } from "./pages/UiKitPreview";
+import { Typography } from "./components/ui";
 import type { User } from "./contexts/AuthContext";
 
 function FeedPage({
@@ -90,9 +91,9 @@ function FeedPage({
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-poppins text-sm font-medium text-white">
+                    <Typography variant="label" as="p" className="text-white">
                       {user.name}
-                    </p>
+                    </Typography>
                     <button
                       onClick={logout}
                       className="font-poppins text-xs text-white/70 transition-colors hover:text-white"
