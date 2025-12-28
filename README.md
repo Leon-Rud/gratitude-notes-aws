@@ -79,7 +79,7 @@ VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 | Method   | Path                                      | Description                                                                                                                      |
 | -------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `POST`   | `/gratitude-notes`                        | Upsert note (body: `{name, email, gratitudeText}`). Returns 201 if created, 200 if updated. Enforces one note per day per email. |
-| `GET`    | `/gratitude-notes/today`                  | List all active notes for today. Returns `{items: [{id, name, note_items, created_at}]}`                                         |
+| `GET`    | `/gratitude-notes/today`                  | List all active notes for today. Returns `{items: [{id, name, gratitude_text, created_at}]}`                                     |
 | `DELETE` | `/gratitude-notes/{id}?token=OWNER_TOKEN` | Soft-delete note (sets `status=deleted`). Requires owner token from POST response.                                               |
 | `POST`   | `/feedback`                               | Send feedback email to developer (body: `{feedback}`). Requires SES sandbox verification.                                        |
 

@@ -17,17 +17,24 @@ sam validate -t "${TEMPLATE_PATH}"
 echo "Building SAM application..."
 sam build -t "${TEMPLATE_PATH}"
 
-# If samconfig.toml absent or user forces guided, run guided deploy to create config
-GUIDED_FLAG=""
-if [ ! -f server/infra/samconfig.toml ] && [ ! -f samconfig.toml ]; then
-  GUIDED_FLAG="--guided"
+# Use samconfig.toml if it exists, otherwise use non-interactive flags
+if [ -f server/infra/samconfig.toml ] || [ -f samconfig.toml ]; then
+  # Use config file (non-interactive)
+  echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}' (using samconfig.toml)..."
+  sam deploy -t "${TEMPLATE_PATH}" \
+    --stack-name "${STACK_NAME}" \
+    --region "${AWS_REGION}"
+else
+  # Non-interactive deploy with parameter overrides
+  echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}' (non-interactive)..."
+  sam deploy -t "${TEMPLATE_PATH}" \
+    --stack-name "${STACK_NAME}" \
+    --region "${AWS_REGION}" \
+    --no-confirm-changeset \
+    --capabilities CAPABILITY_IAM \
+    --resolve-s3 \
+    --parameter-overrides "SenderEmail=your-email@example.com ArchiveTimeZone=Asia/Jerusalem"
 fi
-
-echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}'..."
-sam deploy -t "${TEMPLATE_PATH}" \
-  --stack-name "${STACK_NAME}" \
-  --region "${AWS_REGION}" \
-  ${GUIDED_FLAG}
 
 echo "Capturing CloudFormation outputs..."
 

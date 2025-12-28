@@ -60,6 +60,7 @@ def create_or_update_note(
     
     # If ID provided, update by ID
     if note_id:
+        log_event("create_or_update_note_update_by_id", {"note_id": note_id})
         existing = get_note(note_id)
         if not existing:
             raise ValueError(f"Note {note_id} not found")
@@ -67,11 +68,14 @@ def create_or_update_note(
             raise ValueError(f"Note {note_id} is deleted and cannot be updated")
         update_note_text(note_id, normalized["gratitude_text"], now_iso=now_iso)
         merged = {**existing, "gratitude_text": normalized["gratitude_text"]}
+        log_event("create_or_update_note_updated", {"note_id": note_id})
         return merged, False
 
     # No ID provided: create new note
+    log_event("create_or_update_note_create_new", {"email": normalized["email"], "date": date_str})
     item = _build_note_item(normalized, date_str)
     put_note(item)
+    log_event("create_or_update_note_created", {"note_id": item["id"]})
     return item, True
 
 
