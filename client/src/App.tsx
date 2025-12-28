@@ -37,9 +37,9 @@ function FeedPage({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 flex min-h-screen w-full flex-col">
         {/* Figma layout: left offset 37px, no matching right padding (content width = 1475). */}
-        <div className="mx-auto flex w-full flex-col pl-[37px] pr-0">
+        <div className="mx-auto flex min-h-screen w-full flex-col pl-[37px] pr-0">
           {/* Header */}
           {/* Figma header: positioned at y=17 with 16px internal padding and height ~112px */}
           <header className="mt-[17px] flex min-h-[112px] flex-col justify-start gap-4 p-[16px] sm:flex-row sm:items-start sm:justify-between">

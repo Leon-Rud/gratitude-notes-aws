@@ -12,15 +12,13 @@ const feedbackIconUrl = "/assets/icons/feedback-icon.svg";
 export function FeedbackButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [rating, setRating] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
-
+  const handleSubmit = async (formattedFeedback: string) => {
     // Prevent double submission
     if (isSubmitting || hasSubmitted) {
       return;
@@ -32,11 +30,12 @@ export function FeedbackButton() {
 
     try {
       // Send feedback via API (emails to developer)
-      await submitFeedback(feedback);
+      await submitFeedback(formattedFeedback);
 
       // Also store locally as backup
       const feedbackEntry = {
-        text: feedback,
+        text: formattedFeedback,
+        rating,
         timestamp: new Date().toISOString(),
         date: new Date().toLocaleString(),
       };
@@ -54,6 +53,7 @@ export function FeedbackButton() {
       setTimeout(() => {
         setIsOpen(false);
         setFeedback("");
+        setRating(null);
         setSubmitted(false);
         setHasSubmitted(false); // Reset after modal closes
       }, 2000);
@@ -75,34 +75,44 @@ export function FeedbackButton() {
     setError(null);
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setFeedback("");
+    setRating(null);
+    setSubmitted(false);
+    setError(null);
+    setHasSubmitted(false);
+  };
+
   return (
     <>
-      {!isOpen &&
-        createPortal(
-          <button
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-full border-2 border-solid border-white bg-transparent transition-all hover:bg-[rgba(255,255,255,0.1)]"
-            style={{ width: "70px", height: "70px", padding: "15px" }}
-            title="Share feedback"
-          >
-            <img
-              src={feedbackIconUrl}
-              alt="Feedback"
-              className="h-[38px] w-[38px]"
-            />
-          </button>,
-          document.body,
-        )}
+      {createPortal(
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-[60px] border-2 border-solid border-white bg-transparent p-[21px] transition-all hover:bg-white"
+          style={{ width: "70px", height: "70px" }}
+          title="Share feedback"
+        >
+          <img
+            src={feedbackIconUrl}
+            alt="Feedback"
+            className="h-[28px] w-[28px] transition-all group-hover:brightness-0"
+          />
+        </button>,
+        document.body,
+      )}
 
       <FeedbackModal
         isOpen={isOpen}
         feedback={feedback}
+        rating={rating}
         submitted={submitted}
         error={error}
         isSubmitting={isSubmitting}
-        onClose={() => setIsOpen(false)}
+        onClose={handleClose}
         onSubmit={handleSubmit}
         onFeedbackChange={handleFeedbackChange}
+        onRatingChange={setRating}
       />
     </>
   );
