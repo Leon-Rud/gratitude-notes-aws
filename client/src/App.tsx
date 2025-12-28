@@ -4,6 +4,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { AboutPage } from "./pages/AboutPage";
 import { PublicFeed } from "./components/notes/PublicFeed";
 import { FeedbackButton } from "./components/feedback";
+import { UiKitPreview } from "./pages/UiKitPreview";
 import type { User } from "./contexts/AuthContext";
 
 function FeedPage({
@@ -47,7 +48,7 @@ function FeedPage({
               <h1 className="font-poppins text-[32px] font-medium leading-tight text-white">
                 SHARE YOUR DAILY GRATITUDE
               </h1>
-              <p className="font-poppins mt-2 text-[20px] font-normal leading-none text-white">
+              <p className="mt-2 font-poppins text-[20px] font-normal leading-none text-white">
                 All notes are deleted at the end of the day.
               </p>
             </div>
@@ -171,6 +172,11 @@ function AppContent() {
 
   // Render content based on hash - MUST be before any early returns to follow Rules of Hooks
   const CurrentPage = useMemo(() => {
+    // UiKitPreview only available in development (npm run dev)
+    if (import.meta.env.DEV && hash === "#/ui-kit") {
+      return <UiKitPreview />;
+    }
+
     if (!isAuthenticated) return <LoginPage />;
 
     switch (hash) {

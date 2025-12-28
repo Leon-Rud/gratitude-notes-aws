@@ -6,35 +6,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { NoteSkeleton } from "./NoteSkeleton";
 import { NoteFormCard } from "./NoteFormCard";
 
-export const HOVER_COLORS = [
-  "#1E1B4B",
-  "#312E81",
-  "#4C1D95",
-  "#581C87",
-  "#2D1B69",
-  "#0D3B66",
-  "#0C4A6E",
-  "#004E64",
-  "#134E4A",
-  "#064E3B",
-  "#7F1D1D",
-  "#78350F",
-  "#451A03",
-  "#3D0C11",
-  "#0F172A",
-  "#111827",
-];
-
-// Get a consistent color for a note based on its ID
-function getNoteHoverColor(noteId: string): string {
-  let hash = 0;
-  for (let i = 0; i < noteId.length; i++) {
-    hash = noteId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % HOVER_COLORS.length;
-  return HOVER_COLORS[index];
-}
-
 export function PublicFeed() {
   const { user } = useAuth();
   const MAX_VISIBLE_LINES = 6;
@@ -248,19 +219,12 @@ export function PublicFeed() {
           const isMyNote =
             (userNoteId && note.id === userNoteId) ||
             (user?.email && note.email === user.email);
-          const hoverColor = getNoteHoverColor(note.id);
 
           return (
             <article
               key={note.id}
-              className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.3)] bg-[rgba(104,104,104,0.2)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px] transition-colors duration-200"
+              className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.3)] bg-[rgba(104,104,104,0.2)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px]"
               style={{ mixBlendMode: "darken" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = hoverColor;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(104,104,104,0.2)";
-              }}
             >
               <header className="mb-3 flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -337,19 +301,22 @@ export function PublicFeed() {
                   )}
                 </div>
               </header>
-              <div className="note-content font-poppins max-h-[192px] flex-1 overflow-hidden text-[20px] font-normal leading-[32px] text-white">
-                {note.gratitudeItems
-                  .slice(0, MAX_VISIBLE_LINES)
-                  .map((item, idx) => (
-                    <div key={idx} className="break-words">
-                      {item}
-                    </div>
-                  ))}
-                {note.gratitudeItems.length > MAX_VISIBLE_LINES && (
-                  <p className="mt-auto text-right text-[12px] font-medium uppercase tracking-[0.2em] text-white/70">
-                    +{note.gratitudeItems.length - MAX_VISIBLE_LINES} more...
-                  </p>
-                )}
+              <div className="note-content font-poppins max-h-[192px] flex-1 overflow-hidden whitespace-pre-wrap break-words text-[20px] font-normal leading-[32px] text-white">
+                {(() => {
+                  const lines = note.gratitudeText.split("\n");
+                  const visibleLines = lines.slice(0, MAX_VISIBLE_LINES);
+                  const remainingLines = lines.length - MAX_VISIBLE_LINES;
+                  return (
+                    <>
+                      {visibleLines.join("\n")}
+                      {remainingLines > 0 && (
+                        <p className="mt-auto text-right text-[12px] font-medium uppercase tracking-[0.2em] text-white/70">
+                          +{remainingLines} more...
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </article>
           );
