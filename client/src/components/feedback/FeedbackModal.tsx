@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import type { FormEvent } from "react";
+import { Textarea, Typography } from "../ui";
 
 type EmojiOption = {
   value: number;
@@ -140,19 +141,24 @@ export function FeedbackModal({
 
                 {/* Feedback Textarea */}
                 <div className="flex flex-1 flex-col">
-                  <textarea
+                  <Textarea
                     id="feedback"
                     value={feedback}
                     onChange={(event) => onFeedbackChange(event.target.value)}
                     placeholder="Suggest anything we can improve.."
-                    className="w-full flex-1 resize-none rounded-[8px] border-[1.5px] border-[rgba(255,255,255,0.1)] bg-[#574a7b] px-[15px] py-[13px] font-poppins text-[16px] font-normal leading-normal text-white shadow-[0px_1px_5px_0px_rgba(0,0,0,0.2)] placeholder:text-white/70 focus:outline-none focus:ring-0 disabled:opacity-50"
+                    variant="subtle"
+                    className="flex-1 px-[15px] py-[13px] font-poppins text-[16px] font-normal leading-normal shadow-[0px_1px_5px_0px_rgba(0,0,0,0.2)]"
                     required
                     disabled={isSubmitting}
                   />
                   {error && (
-                    <p className="mt-2 font-poppins text-[14px] font-normal leading-[21px] text-[#eb4cd8]">
+                    <Typography
+                      variant="caption"
+                      as="p"
+                      className="mt-2 leading-[21px] text-error"
+                    >
                       {error}
-                    </p>
+                    </Typography>
                   )}
                 </div>
 

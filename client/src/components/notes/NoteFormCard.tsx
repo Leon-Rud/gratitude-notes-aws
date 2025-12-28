@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { createGratitudeNote } from "../../api/notes";
 import type { GratitudeNote } from "../../api/types";
+import { Textarea, Typography } from "../ui";
 
 type NoteFormCardProps = {
   onSuccess?: () => void;
@@ -118,13 +119,15 @@ export function NoteFormCard({
         >
           <div className="relative flex flex-col">
             <div className="relative">
-              <textarea
+              <Textarea
                 id="gratitude"
                 rows={6}
                 value={gratitudeText}
                 onChange={handleGratitudeChange}
                 maxLength={MAX_LENGTH}
-                className={`gratitude-textarea font-poppins h-[240px] w-full resize-none overflow-y-auto rounded-[8px] border bg-[#524974] py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] text-white placeholder:text-white/70 focus:outline-none focus:ring-0 disabled:opacity-50 ${
+                variant="default"
+                error={!!error}
+                className={`gratitude-textarea font-poppins h-[240px] overflow-y-auto py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
                   error
                     ? "border-[#eb4cd8]"
                     : "border border-[rgba(255,255,255,0.2)]"
@@ -144,9 +147,13 @@ export function NoteFormCard({
             </div>
           </div>
           {error && (
-            <p className="font-poppins absolute left-0 top-[calc(240px+13px)] text-[14px] font-normal leading-[21px] text-[#eb4cd8]">
+            <Typography
+              variant="caption"
+              as="p"
+              className="absolute left-0 top-[calc(240px+13px)] leading-[21px] text-error"
+            >
               {error}
-            </p>
+            </Typography>
           )}
           <div className="mt-[20px] flex justify-center">
             <button
