@@ -10,6 +10,8 @@ set -euo pipefail
 TEMPLATE_PATH="server/infra/template.yaml"
 STACK_NAME="${STACK_NAME:-daily-gratitude}"
 AWS_REGION="${AWS_REGION:-eu-west-1}"
+SENDER_EMAIL="${SENDER_EMAIL:-your-email@example.com}"
+ARCHIVE_TIMEZONE="${ARCHIVE_TIMEZONE:-Asia/Jerusalem}"
 
 echo "Validating SAM template (${TEMPLATE_PATH})..."
 sam validate -t "${TEMPLATE_PATH}"
@@ -17,23 +19,35 @@ sam validate -t "${TEMPLATE_PATH}"
 echo "Building SAM application..."
 sam build -t "${TEMPLATE_PATH}"
 
-# Use samconfig.toml if it exists, otherwise use non-interactive flags
+# Determine parameter overrides: env vars take precedence, then samconfig.toml, then defaults
+PARAM_OVERRIDES="SenderEmail=${SENDER_EMAIL} ArchiveTimeZone=${ARCHIVE_TIMEZONE}"
+
+# Use samconfig.toml if it exists, but always override with env vars if set
 if [ -f server/infra/samconfig.toml ] || [ -f samconfig.toml ]; then
-  # Use config file (non-interactive)
   echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}' (using samconfig.toml)..."
-  sam deploy -t "${TEMPLATE_PATH}" \
-    --stack-name "${STACK_NAME}" \
-    --region "${AWS_REGION}"
+  # If env vars are set, override the config file
+  if [ "${SENDER_EMAIL}" != "your-email@example.com" ]; then
+    echo "Using SenderEmail from environment variable: ${SENDER_EMAIL}"
+    sam deploy -t "${TEMPLATE_PATH}" \
+      --stack-name "${STACK_NAME}" \
+      --region "${AWS_REGION}" \
+      --parameter-overrides "${PARAM_OVERRIDES}"
+  else
+    # Use values from samconfig.toml
+    sam deploy -t "${TEMPLATE_PATH}" \
+      --stack-name "${STACK_NAME}" \
+      --region "${AWS_REGION}"
+  fi
 else
-  # Non-interactive deploy with parameter overrides
-  echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}' (non-interactive)..."
+  # No config file: use env vars or defaults
+  echo "Deploying stack '${STACK_NAME}' to region '${AWS_REGION}' (no config file)..."
   sam deploy -t "${TEMPLATE_PATH}" \
     --stack-name "${STACK_NAME}" \
     --region "${AWS_REGION}" \
     --no-confirm-changeset \
     --capabilities CAPABILITY_IAM \
     --resolve-s3 \
-    --parameter-overrides "SenderEmail=your-email@example.com ArchiveTimeZone=Asia/Jerusalem"
+    --parameter-overrides "${PARAM_OVERRIDES}"
 fi
 
 echo "Capturing CloudFormation outputs..."

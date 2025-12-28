@@ -1,18 +1,20 @@
 version = 0.1
+
 [default]
 [default.global.parameters]
-region = "eu-west-1"
+stack_name = "daily-gratitude"
 
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "daily-gratitude"
-resolve_s3 = true
-s3_prefix = "daily-gratitude"
+region = "eu-west-1"
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+resolve_image_repos = true
+# IMPORTANT: Copy this file to samconfig.toml and update SenderEmail with your SES-verified email
+# Or set SENDER_EMAIL environment variable before deploying
 parameter_overrides = [
-    "SenderEmail=your-email@example.com",
-    "LinkedInUrl=https://linkedin.com/in/yourprofile",
-    "GitHubUrl=https://github.com/yourusername",
+    "SenderEmail=your-email@example.com",  # Replace with your SES-verified email
     "ArchiveTimeZone=Asia/Jerusalem"
 ]
-
