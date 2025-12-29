@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../contexts/AuthContext";
-import { FactCard } from "../components/FactCard";
-import { SignInButton } from "../components/SignInButton";
+import { AboutUsLetsStartButton } from "../components/AboutUsLetsStartButton";
+import { Typography } from "../components/ui";
 
 type GoogleJwtPayload = {
   name?: string;
@@ -10,13 +11,6 @@ type GoogleJwtPayload = {
 };
 
 const backgroundImageUrl = "/assets/images/backgrounds/login-background.png";
-
-const facts = [
-  "Increases happiness",
-  "Improves sleep",
-  "Reduces stress",
-  "Strengthens relationships",
-];
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -67,30 +61,26 @@ export function LoginPage() {
         {/* Hero section - Left side */}
         <div className="flex flex-1 items-start pb-4 pl-[calc(8.33%+2px)] pr-6 pt-20 sm:pl-[calc(8.33%+2px)] sm:pr-10 sm:pt-24 md:pl-[calc(8.33%+2px)] md:pr-16 md:pt-32">
           <div className="flex w-full max-w-[498px] flex-col gap-4 px-6 py-4 sm:gap-6 sm:px-10 sm:py-6 md:gap-8 md:px-10 md:py-8">
-            <h1 className="font-poppins flex flex-col gap-[32px] text-2xl font-semibold italic leading-[1.3] text-white sm:text-3xl md:gap-[32px] md:text-4xl lg:gap-[32px] lg:text-[48px]">
-              {" "}
-              <span>START YOUR DAY</span>
-              <span>WITH GRATITUDE</span>
-            </h1>
-            <p className="font-poppins max-w-[402px] whitespace-pre-wrap text-base font-medium leading-[1.2] text-white sm:text-lg md:text-xl lg:text-2xl">
+            <Typography
+              variant="h1"
+              as="h1"
+              className="text-[48px] uppercase tracking-[-0.96px] text-white"
+            >
+              <span className="block">WELCOME TO</span>
+              <span className="block whitespace-nowrap">GRATITUDE BOARD</span>
+            </Typography>
+            <p className="max-w-[402px] whitespace-nowrap font-poppins text-base font-normal leading-[1.2] text-white sm:text-lg md:text-xl lg:text-2xl">
+              A quiet corner to notice the good in your day.
+            </p>
+            <p className="mt-[25px] max-w-[550px] whitespace-pre-wrap font-poppins text-[24px] font-normal leading-[1.2] text-white">
               Share what you're thankful for - and see what others appreciate
               today.
             </p>
-            <SignInButton onSuccess={handleSuccess} onError={handleError} />
-          </div>
-        </div>
 
-        {/* Facts section - Bottom */}
-        <div className="flex flex-shrink-0 flex-col items-center gap-2 px-4 pb-2 sm:gap-3 sm:pb-3 md:gap-4 md:pb-4">
-          <div className="hidden lg:block">
-            <p className="font-poppins w-[239px] whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-[-0.32px] text-white sm:text-base">
-              DID YOU KNOW THAT DAILY GRATITUDE PRACTICE:
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4">
-            {facts.map((fact, index) => (
-              <FactCard key={index} text={fact} />
-            ))}
+            <AboutUsLetsStartButton
+              onSuccess={handleSuccess}
+              onError={handleError}
+            />
           </div>
         </div>
       </div>

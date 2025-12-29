@@ -21,15 +21,16 @@ UI Primitives location: [`src/components/ui/`](src/components/ui/)
 
 #### `colors.ui.*`
 
-| Token            | Value                   | Intended Usage                               | Tailwind Examples       |
-| ---------------- | ----------------------- | -------------------------------------------- | ----------------------- |
-| `ui.glass`       | `rgba(255,255,255,0.1)` | Background for glass morphism effects        | `bg-ui-glass`           |
-| `ui.overlay`     | `rgba(0,0,0,0.75)`      | Dark overlay backgrounds, button backgrounds | `bg-ui-overlay`         |
-| `ui.border`      | `#d0d5dd`               | Standard border color                        | `border-ui-border`      |
-| `ui.card`        | `rgba(104,104,104,0.2)` | Solid card backgrounds                       | `bg-ui-card`            |
-| `ui.input`       | `#524974`               | Default input/textarea background            | `bg-ui-input`           |
-| `ui.inputSubtle` | `#574a7b`               | Subtle input/textarea background             | `bg-ui-inputSubtle`     |
-| `ui.glassBorder` | `rgba(255,255,255,0.1)` | Border for glass morphism elements           | `border-ui-glassBorder` |
+| Token             | Value                   | Intended Usage                               | Tailwind Examples       |
+| ----------------- | ----------------------- | -------------------------------------------- | ----------------------- |
+| `ui.glass`        | `rgba(255,255,255,0.1)` | Background for glass morphism effects        | `bg-ui-glass`           |
+| `ui.overlay`      | `rgba(0,0,0,0.75)`      | Dark overlay backgrounds, button backgrounds | `bg-ui-overlay`         |
+| `ui.border`       | `#d0d5dd`               | Standard border color                        | `border-ui-border`      |
+| `ui.card`         | `rgba(104,104,104,0.2)` | Solid card backgrounds                       | `bg-ui-card`            |
+| `ui.input`        | `#524974`               | Default input/textarea background            | `bg-ui-input`           |
+| `ui.inputSubtle`  | `#574a7b`               | Subtle input/textarea background             | `bg-ui-inputSubtle`     |
+| `ui.glassBorder`  | `rgba(255,255,255,0.1)` | Border for glass morphism elements           | `border-ui-glassBorder` |
+| `ui.loginOverlay` | `rgba(95,82,178,0.45)`  | Login page background overlay                | `bg-ui-loginOverlay`    |
 
 **Usage examples:**
 
@@ -94,9 +95,10 @@ UI Primitives location: [`src/components/ui/`](src/components/ui/)
 
 ### Blur
 
-| Token                 | Value   | Tailwind Class        |
-| --------------------- | ------- | --------------------- |
-| `backdrop-blur-glass` | `7.5px` | `backdrop-blur-glass` |
+| Token                 | Value    | Tailwind Class        |
+| --------------------- | -------- | --------------------- |
+| `backdrop-blur-glass` | `7.5px`  | `backdrop-blur-glass` |
+| `backdrop-blur-hero`  | `17.5px` | `backdrop-blur-hero`  |
 
 **Usage example:**
 

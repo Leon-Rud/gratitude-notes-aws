@@ -157,7 +157,8 @@ function AppContent() {
   useEffect(() => {
     const current = window.location.hash || "";
     if (!isAuthenticated) {
-      if (current !== "#/login") {
+      // Allow access to login and about pages when not authenticated
+      if (current !== "#/login" && current !== "#/about") {
         window.location.hash = "#/login";
         setHash("#/login");
       }
@@ -178,11 +179,14 @@ function AppContent() {
       return <UiKitPreview />;
     }
 
+    // About page is accessible to both authenticated and unauthenticated users
+    if (hash === "#/about") {
+      return <AboutPage />;
+    }
+
     if (!isAuthenticated) return <LoginPage />;
 
     switch (hash) {
-      case "#/about":
-        return <AboutPage />;
       case "#/feed":
         return (
           <FeedPage

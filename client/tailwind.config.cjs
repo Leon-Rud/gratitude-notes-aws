@@ -19,6 +19,7 @@ module.exports = {
           input: '#524974',
           inputSubtle: '#574a7b',
           glassBorder: 'rgba(255,255,255,0.1)',
+          loginOverlay: 'rgba(95, 82, 178, 0.45)', // #5F52B2 at 45% opacity
         },
         design: {
           background: 'rgba(144, 126, 173, 0.4)', // #907EAD at 40%
@@ -47,6 +48,7 @@ module.exports = {
       },
       backdropBlur: {
         'glass': '7.5px',
+        'hero': '17.5px',
       }
     }
   },
