@@ -1,22 +1,13 @@
-import { useRef, useState } from "react";
-import { GoogleLogin } from "@react-oauth/google";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "../contexts/AuthContext";
 
 const arrowUpRightUrl = "/assets/icons/arrow-up-right.svg";
-// todo implement the new arrow up right icon
-
-type AboutUsLetsStartButtonProps = {
-  onSuccess: (credentialResponse: { credential?: string }) => void;
-  onError: () => void;
-};
 
 type Active = "about" | "lets";
 
-export function AboutUsLetsStartButton({
-  onSuccess,
-  onError,
-}: AboutUsLetsStartButtonProps) {
-  const googleButtonRef = useRef<HTMLDivElement>(null);
+export function AboutUsLetsStartButton() {
+  const { triggerGoogleLogin } = useAuth();
   const [active, setActive] = useState<Active>("about");
 
   const handleAboutUs = () => {
@@ -24,10 +15,7 @@ export function AboutUsLetsStartButton({
   };
 
   const handleLetsStart = () => {
-    const googleButton = googleButtonRef.current?.querySelector(
-      'div[role="button"]',
-    ) as HTMLElement;
-    googleButton?.click();
+    triggerGoogleLogin();
   };
 
   const spring = {
@@ -38,25 +26,7 @@ export function AboutUsLetsStartButton({
   };
 
   return (
-    <div className="relative">
-      {/* Hidden Google Login button */}
-      <div
-        ref={googleButtonRef}
-        className="pointer-events-none absolute opacity-0"
-      >
-        <GoogleLogin
-          onSuccess={onSuccess}
-          onError={onError}
-          useOneTap={false}
-          theme="filled_blue"
-          size="large"
-          text="signin_with"
-          shape="rectangular"
-        />
-      </div>
-
-      {/* Outer container - fixed width 377px, height 82px per Figma */}
-      <div className="relative flex h-[82px] w-[377px] items-center gap-[10px] overflow-hidden rounded-[50px] border-[1.5px] border-white bg-ui-glass p-[10px] backdrop-blur-glass">
+    <div className="relative flex h-[82px] w-[377px] items-center gap-[10px] overflow-hidden rounded-[50px] border-[1.5px] border-white bg-ui-glass p-[10px] backdrop-blur-glass">
         {/* ABOUT - width animates based on active state */}
         <motion.button
           type="button"
@@ -130,7 +100,6 @@ export function AboutUsLetsStartButton({
             </motion.span>
           </span>
         </motion.button>
-      </div>
     </div>
   );
 }

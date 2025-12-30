@@ -1,3 +1,5 @@
+import { useAuth } from "../../contexts/AuthContext";
+
 export interface StartSharingButtonProps {
   href?: string;
   label?: string;
@@ -7,8 +9,14 @@ export function StartSharingButton({
   href = "#/feed",
   label = "Start Sharing",
 }: StartSharingButtonProps) {
+  const { isAuthenticated, triggerGoogleLogin } = useAuth();
+
   const handleClick = () => {
-    window.location.hash = href.replace("#", "");
+    if (isAuthenticated) {
+      window.location.hash = href.replace("#", "");
+    } else {
+      triggerGoogleLogin();
+    }
   };
 
   return (

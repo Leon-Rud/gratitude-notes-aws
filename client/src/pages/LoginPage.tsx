@@ -1,47 +1,9 @@
-import { useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-import { useAuth } from "../contexts/AuthContext";
 import { AboutUsLetsStartButton } from "../components/AboutUsLetsStartButton";
 import { Typography } from "../components/ui";
-
-type GoogleJwtPayload = {
-  name?: string;
-  email?: string;
-  picture?: string;
-};
 
 const backgroundImageUrl = "/assets/images/backgrounds/login-background.png";
 
 export function LoginPage() {
-  const { login } = useAuth();
-
-  const handleSuccess = (credentialResponse: { credential?: string }) => {
-    try {
-      const token = credentialResponse?.credential;
-      if (!token) {
-        throw new Error("Missing Google credential");
-      }
-
-      const userData = jwtDecode<GoogleJwtPayload>(token);
-      if (!userData.name || !userData.email) {
-        throw new Error(
-          "Google profile is missing required fields (name/email).",
-        );
-      }
-      login({
-        name: userData.name,
-        email: userData.email,
-        picture: userData.picture || undefined,
-      });
-      window.location.hash = "#/feed";
-    } catch (error) {
-      console.error("Failed to decode Google token:", error);
-    }
-  };
-
-  const handleError = () => {
-    console.error("Google login failed");
-  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -86,10 +48,7 @@ export function LoginPage() {
             </p>
 
             <div className="mt-[32px]">
-              <AboutUsLetsStartButton
-                onSuccess={handleSuccess}
-                onError={handleError}
-              />
+              <AboutUsLetsStartButton />
             </div>
           </div>
         </div>
