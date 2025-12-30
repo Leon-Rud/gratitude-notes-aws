@@ -20,7 +20,7 @@ export function useScrollBlur(
     maxScroll = 1600,
     initialBlur = 17.5,
     initialOpacity = 0.55,
-    minOpacity = 0.5,
+    minOpacity = 0.45,
   } = options;
 
   const [blurAmount, setBlurAmount] = useState(initialBlur);
@@ -37,10 +37,10 @@ export function useScrollBlur(
       // Blur fades from initial value to 0 as user scrolls
       const newBlur = initialBlur * (1 - scrollProgress);
 
-      // Opacity decreases but maintains minimum value
+      // Opacity decreases to minimum value
       const newOpacity = Math.max(
         minOpacity,
-        initialOpacity * (1 - scrollProgress * 0.5)
+        initialOpacity * (1 - scrollProgress)
       );
 
       setBlurAmount(newBlur);
