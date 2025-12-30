@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const arrowUpRightUrl = "/assets/icons/arrow-up-right.svg";
 // todo implement the new arrow up right icon
@@ -55,94 +55,81 @@ export function AboutUsLetsStartButton({
         />
       </div>
 
-      {/* Outer container */}
-      <div className="relative flex items-center overflow-hidden rounded-[50px] border-[1.5px] border-white bg-[rgba(255,255,255,0.1)] p-[10px] backdrop-blur-[7.5px]">
-        {/* Use grid so the two halves are always identical */}
-        <div className="grid  h-[62px] w-full grid-cols-2 gap-[10px]">
-          {/* ABOUT */}
-          <button
-            type="button"
-            onMouseEnter={() => setActive("about")}
-            onFocus={() => setActive("about")}
-            onClick={handleAboutUs}
-            className="relative flex h-full min-w-0 items-center justify-center rounded-[60px] px-[20px] py-[10px]"
-          >
-            {/* Moving pill lives INSIDE whichever button is active */}
-            {active === "about" && (
-              <motion.div
-                layoutId="pill"
-                transition={spring}
-                className="absolute inset-0 rounded-[60px] border border-[#d0d5dd] bg-[rgba(0,0,0,0.75)]"
-              />
-            )}
+      {/* Outer container - fixed width 377px, height 82px per Figma */}
+      <div className="relative flex h-[82px] w-[377px] items-center gap-[10px] overflow-hidden rounded-[50px] border-[1.5px] border-white bg-ui-glass p-[10px] backdrop-blur-glass">
+        {/* ABOUT - width animates based on active state */}
+        <motion.button
+          type="button"
+          onMouseEnter={() => setActive("about")}
+          onFocus={() => setActive("about")}
+          onClick={handleAboutUs}
+          initial={false}
+          animate={{ width: active === "about" ? 208 : 149 }}
+          transition={spring}
+          className="relative flex h-full items-center justify-center rounded-[60px] px-[20px] py-[10px]"
+        >
+          {active === "about" && (
+            <motion.div
+              layoutId="pill"
+              transition={spring}
+              className="absolute inset-0 rounded-[60px] border-[0.5px] border-[#d0d5dd] bg-ui-overlay"
+            />
+          )}
 
-            <span className="relative z-10 flex min-w-0 items-center justify-center">
-              <span className="whitespace-nowrap font-poppins text-[24px] font-light leading-normal tracking-[-0.36px] text-white">
-                About Us
-              </span>
-
-              {/* Arrow animates in/out with a little slide */}
-              <AnimatePresence initial={false}>
-                {active === "about" && (
-                  <motion.span
-                    key="about-arrow"
-                    initial={{ width: 0, opacity: 0, x: -8 }}
-                    animate={{ width: 42, opacity: 1, x: 0 }}
-                    exit={{ width: 0, opacity: 0, x: -8 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    className="ml-3 flex h-[42px] items-center justify-center overflow-hidden"
-                  >
-                    <img
-                      src={arrowUpRightUrl}
-                      alt=""
-                    />
-                  </motion.span>
-                )}
-              </AnimatePresence>
+          <span className="relative z-10 flex items-center justify-center gap-0">
+            <span className="whitespace-nowrap font-poppins text-[24px] font-light leading-normal tracking-[-0.36px] text-white">
+              About Us
             </span>
-          </button>
+            <motion.span
+              initial={false}
+              animate={{
+                width: active === "about" ? 36 : 0,
+                opacity: active === "about" ? 1 : 0
+              }}
+              transition={spring}
+              className="flex h-[36px] items-center justify-center overflow-hidden"
+            >
+              <img src={arrowUpRightUrl} alt="" className="h-[36px] w-[36px] flex-shrink-0" />
+            </motion.span>
+          </span>
+        </motion.button>
 
-          {/* LET'S START */}
-          <button
-            type="button"
-            onMouseEnter={() => setActive("lets")}
-            onFocus={() => setActive("lets")}
-            onClick={handleLetsStart}
-            className="relative flex h-full min-w-0 items-center justify-center rounded-[60px] px-[20px] py-[10px]"
-          >
-            {active === "lets" && (
-              <motion.div
-                layoutId="pill"
-                transition={spring}
-                className="absolute inset-0 rounded-[60px] border border-[#d0d5dd] bg-[rgba(0,0,0,0.75)]"
-              />
-            )}
+        {/* LET'S START - width animates based on active state */}
+        <motion.button
+          type="button"
+          onMouseEnter={() => setActive("lets")}
+          onFocus={() => setActive("lets")}
+          onClick={handleLetsStart}
+          initial={false}
+          animate={{ width: active === "lets" ? 208 : 149 }}
+          transition={spring}
+          className="relative flex h-full items-center justify-center rounded-[60px] px-[20px] py-[10px]"
+        >
+          {active === "lets" && (
+            <motion.div
+              layoutId="pill"
+              transition={spring}
+              className="absolute inset-0 rounded-[60px] border-[0.5px] border-[#d0d5dd] bg-ui-overlay"
+            />
+          )}
 
-            <span className="relative z-10 flex min-w-0 items-center justify-center">
-              <span className="whitespace-nowrap font-poppins text-[24px] font-light leading-normal tracking-[-0.36px] text-white">
-                Let&apos;s Start
-              </span>
-
-              <AnimatePresence initial={false}>
-                {active === "lets" && (
-                  <motion.span
-                    key="lets-arrow"
-                    initial={{ width: 0, opacity: 0, x: -8 }}
-                    animate={{ width: 42, opacity: 1, x: 0 }}
-                    exit={{ width: 0, opacity: 0, x: -8 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    className="ml-3 flex h-[42px] items-center justify-center overflow-hidden"
-                  >
-                    <img
-                      src={arrowUpRightUrl}
-                      alt=""
-                    />
-                  </motion.span>
-                )}
-              </AnimatePresence>
+          <span className="relative z-10 flex items-center justify-center gap-0">
+            <span className="whitespace-nowrap font-poppins text-[24px] font-light leading-normal tracking-[-0.36px] text-white">
+              Let&apos;s Start
             </span>
-          </button>
-        </div>
+            <motion.span
+              initial={false}
+              animate={{
+                width: active === "lets" ? 36 : 0,
+                opacity: active === "lets" ? 1 : 0
+              }}
+              transition={spring}
+              className="flex h-[36px] items-center justify-center overflow-hidden"
+            >
+              <img src={arrowUpRightUrl} alt="" className="h-[36px] w-[36px] flex-shrink-0" />
+            </motion.span>
+          </span>
+        </motion.button>
       </div>
     </div>
   );
