@@ -13,6 +13,11 @@ Before writing custom Tailwind classes, check if:
 
 UI Primitives location: [`src/components/ui/`](src/components/ui/)
 
+### Visual parity (not pixel-perfect)
+
+Goal is **design-faithful**, not pixel-perfect.
+
+
 ---
 
 ## 2) Tokens
@@ -550,6 +555,25 @@ These patterns are allowed as one-offs and should be documented near their usage
 - **Animation containers:** Framer Motion containers with custom transitions
 
 Document these in component comments, not in the design system.
+
+### Visual parity (not pixel-perfect)
+
+Goal is **design-faithful**, not pixel-perfect.
+
+We optimize for:
+- consistent spacing/typography via tokens + primitives
+- responsive behavior and accessibility
+- maintainability (no copy/paste class spam)
+
+Acceptable tolerances:
+- small spacing differences (≈1–4px) if the component remains visually consistent
+- minor font rendering differences across browsers
+- layout changes that improve responsiveness (avoid fixed absolute positioning unless required)
+
+Pixel-perfect is required only for:
+- hero/landing “marketing” sections in the primary viewport
+- key branded components (e.g., the main CTA button) when explicitly requested
+
 
 ---
 
