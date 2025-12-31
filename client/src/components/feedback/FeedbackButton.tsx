@@ -89,14 +89,14 @@ export function FeedbackButton() {
       {createPortal(
         <button
           onClick={() => setIsOpen(true)}
-          className="group fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-[60px] border-2 border-solid border-white bg-transparent p-[21px] transition-all hover:bg-white"
-          style={{ width: "70px", height: "70px" }}
+          className="group fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-[60px] border-2 border-solid border-white bg-transparent p-[16px] transition-all hover:bg-white"
+          style={{ width: "55px", height: "55px" }}
           title="Share feedback"
         >
           <img
             src={feedbackIconUrl}
             alt="Feedback"
-            className="h-[28px] w-[28px] transition-all group-hover:brightness-0"
+            className="h-[23px] w-[23px] transition-all group-hover:brightness-0"
           />
         </button>,
         document.body,

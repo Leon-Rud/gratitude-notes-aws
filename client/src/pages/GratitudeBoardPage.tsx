@@ -294,16 +294,15 @@ export function GratitudeBoardPage({
                 setShowForm(true);
               }}
               disabled={addButtonDisabled}
-              className={`relative h-[336px] w-[336px] overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.3)] bg-[rgba(104,104,104,0.2)] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px] ${
+              className={`relative h-[336px] w-[336px] overflow-hidden rounded-[16px] border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px] ${
                 addButtonDisabled
                   ? "cursor-not-allowed opacity-60"
                   : "transition-all hover:-translate-y-0.5"
               }`}
-              style={{ mixBlendMode: "darken" }}
             >
               <p className="absolute left-1/2 top-[24px] w-[282px] -translate-x-1/2 text-center font-poppins text-[20px] font-normal leading-[1.2] text-white">
                 {addButtonDisabled
-                  ? "One gratitude note a day"
+                  ? "One gratitude note a day 🌿"
                   : "Add your gratitude note"}
               </p>
               <div className="absolute left-1/2 top-1/2 h-[80px] w-[80px] -translate-x-1/2 -translate-y-1/2">
@@ -339,7 +338,7 @@ export function GratitudeBoardPage({
                     strokeLinecap="round"
                   />
                 </svg>
-                <p className="absolute left-1/2 top-1/2 w-[282px] -translate-x-1/2 -translate-y-1/2 text-center font-poppins text-[20px] font-normal leading-[1.2] text-white">
+                <p className="absolute left-1/2 top-[40px] w-[282px] -translate-x-1/2 text-center font-poppins text-[20px] font-normal leading-[1.2] text-white">
                   You&apos;ll see everyone&apos;s notes here once people start
                   sharing.
                 </p>
@@ -355,8 +354,7 @@ export function GratitudeBoardPage({
               return (
                 <article
                   key={note.id}
-                  className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.3)] bg-[rgba(104,104,104,0.2)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px]"
-                  style={{ mixBlendMode: "darken" }}
+                  className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-[16px] border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px]"
                 >
                   <header className="mb-3 flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -364,7 +362,7 @@ export function GratitudeBoardPage({
                         {note.name}
                       </h3>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-1">
                       {isMyNote && (
                         <>
                           <button
@@ -461,8 +459,8 @@ export function GratitudeBoardPage({
             </p>
           )}
 
-          {/* Did you know section - positioned near bottom of viewport, cards below fold */}
-          <section className="mt-[400px] pb-[60px]">
+          {/* Did you know section - positioned so title is visible on initial load */}
+          <section className="mt-[280px] pb-[60px]">
             <h2 className="mb-[75px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
               Did you know that daily gratitude practice:
             </h2>
@@ -470,24 +468,24 @@ export function GratitudeBoardPage({
             {/* Facts boxes - 2x2 grid layout */}
             <div className="mx-auto grid max-w-[1124px] grid-cols-1 gap-x-[32px] gap-y-[24px] md:grid-cols-2">
               {/* Row 1 */}
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(104,104,104,0.2)] p-[10px] backdrop-blur-[7.5px]">
+              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
                 <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
                   Lower Burnout rates by 20%
                 </p>
               </div>
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(104,104,104,0.2)] p-[10px] backdrop-blur-[7.5px]">
+              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
                 <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
                   Enhance mental strength
                 </p>
               </div>
 
               {/* Row 2 */}
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(104,104,104,0.2)] p-[10px] backdrop-blur-[7.5px]">
+              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
                 <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
                   Reduce depression and anxiety
                 </p>
               </div>
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(104,104,104,0.2)] p-[10px] backdrop-blur-[7.5px]">
+              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
                 <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
                   <span className="block">Improves Sleep Quality</span>
                   <span className="block">by 75%</span>
@@ -520,7 +518,7 @@ export function GratitudeBoardPage({
               }}
             >
               <div
-                className="h-[500px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+                className="h-[450px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
                 style={{
                   backgroundImage:
                     "linear-gradient(135deg, rgba(42, 37, 88, 0.95) 0%, rgba(127, 88, 162, 1) 100%)",
@@ -528,7 +526,7 @@ export function GratitudeBoardPage({
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with separation line */}
-                <div className="flex h-[76px] items-center justify-between border-b border-[rgba(255,255,255,0.1)] px-8">
+                <div className="flex h-[80px] items-center justify-between border-b border-[rgba(255,255,255,0.1)] px-[28px]">
                   <h2 className="font-poppins text-[18px] font-normal leading-[27px] text-white">
                     {editingNote ? "Edit Gratitude Note" : "Add Gratitude Note"}
                   </h2>
@@ -557,7 +555,7 @@ export function GratitudeBoardPage({
                   </button>
                 </div>
                 {/* Body */}
-                <div className="h-[calc(500px-76px)] overflow-hidden">
+                <div className="h-[370px] overflow-hidden">
                   <NoteFormCard
                     compact
                     editingNote={editingNote}
@@ -580,7 +578,7 @@ export function GratitudeBoardPage({
         createPortal(
           <>
             {/* Full screen blur overlay */}
-            <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[5px]" />
+            <div className="fixed inset-0 z-40 bg-[rgba(255,255,255,0.05)] backdrop-blur-[5px]" />
             {/* Modal container */}
             <div
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -591,36 +589,34 @@ export function GratitudeBoardPage({
               }}
             >
               <div
-                className="h-[179px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+                className="h-[170px] w-[500px] overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
                 style={{
                   backgroundImage:
-                    "linear-gradient(160.1deg, rgba(42, 37, 88, 0.95) 0%, rgba(127, 88, 162, 1) 100%)",
+                    "linear-gradient(161deg, rgba(42, 37, 88, 0.95) 0%, rgba(169, 109, 206, 0.9) 100%)",
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with separation line */}
-                <div className="flex h-[75px] items-center border-b border-[rgba(255,255,255,0.1)] px-[36px]">
-                  <p className="font-poppins text-[18px] font-normal leading-[27px] text-white">
+                <div className="flex h-[80px] items-center border-b border-[rgba(255,255,255,0.1)] px-[39px]">
+                  <p className="font-poppins text-[18px] font-medium uppercase leading-[1.2] text-white">
                     Are you sure you want to delete this note?
                   </p>
                 </div>
                 {/* Body with buttons */}
-                <div className="relative flex h-[104px] items-center justify-center px-[24px]">
+                <div className="relative flex h-[90px] items-center justify-center p-[24px]">
+                  {/* Delete button - glass only */}
                   <button
                     type="button"
                     onClick={handleDeleteConfirm}
-                    className="absolute left-[calc(50%-117px)] top-1/2 h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 rounded-[50px] border-2 border-white bg-[rgba(255,255,255,0.1)] px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
+                    className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[50px] bg-[rgba(255,255,255,0.1)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
                   >
                     Delete
                   </button>
+                  {/* Cancel button - black */}
                   <button
                     type="button"
                     onClick={handleDeleteCancel}
-                    className="absolute left-[calc(50%+117px)] top-1/2 h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 rounded-[50px] border-2 border-white bg-black px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal text-white transition-all hover:opacity-90"
-                    style={{
-                      border: "2px solid white",
-                      boxShadow: "inset 0 0 0 0.5px #d0d5dd",
-                    }}
+                    className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[60px] bg-[rgba(0,0,0,0.75)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)]"
                   >
                     Cancel
                   </button>

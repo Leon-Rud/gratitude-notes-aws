@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { createGratitudeNote } from "../../api/notes";
 import type { GratitudeNote } from "../../api/types";
-import { Textarea, Typography } from "../ui";
+import { Textarea } from "../ui";
 
 type NoteFormCardProps = {
   onSuccess?: () => void;
@@ -53,7 +53,6 @@ export function NoteFormCard({
 
   function validate(): string | null {
     if (!user?.name || !user?.email) return "Please sign in to continue";
-    if (gratitudeText.trim().length === 0) return "Please write a few words.";
     if (gratitudeText.length > MAX_LENGTH)
       return `Note must be ${MAX_LENGTH} characters or less.`;
     return null;
@@ -108,12 +107,12 @@ export function NoteFormCard({
       <div
         className={
           compact
-            ? "flex h-full flex-col px-[24px] pb-[20px] pt-[24px]"
-            : "flex h-full flex-col rounded-[6px] border border-[rgba(255,255,255,0.12)] bg-[#2a2558] px-[24px] pb-[20px] pt-[24px] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]"
+            ? "flex h-full flex-col px-[24px] pb-[24px] pt-[12px]"
+            : "flex h-full flex-col rounded-[6px] border border-[rgba(255,255,255,0.12)] bg-[#2a2558] px-[24px] pb-[24px] pt-[12px] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]"
         }
       >
         <form
-          className="relative flex flex-col gap-[13px]"
+          className="relative flex flex-col gap-[24px]"
           onSubmit={onSubmit}
           aria-busy={isLoading}
         >
@@ -127,7 +126,7 @@ export function NoteFormCard({
                 maxLength={MAX_LENGTH}
                 variant="default"
                 error={!!error}
-                className={`gratitude-textarea font-poppins h-[240px] overflow-y-auto py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
+                className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-[8px] bg-[#574a7b] py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
                   error
                     ? "border-[#eb4cd8]"
                     : "border border-[rgba(255,255,255,0.2)]"
@@ -136,7 +135,7 @@ export function NoteFormCard({
                 disabled={isLoading}
               />
               <span
-                className={`font-poppins absolute bottom-[18px] right-[21px] whitespace-nowrap text-[16px] font-normal leading-[26px] opacity-80 ${
+                className={`font-poppins absolute bottom-[8px] right-[18px] whitespace-nowrap text-[16px] font-normal leading-[26px] opacity-80 ${
                   gratitudeText.length > MAX_LENGTH
                     ? "text-[#eb4cd8]"
                     : "text-[rgba(255,255,255,0.8)]"
@@ -146,21 +145,13 @@ export function NoteFormCard({
               </span>
             </div>
           </div>
-          {error && (
-            <Typography
-              variant="caption"
-              as="p"
-              className="absolute left-0 top-[calc(240px+13px)] leading-[21px] text-error"
-            >
-              {error}
-            </Typography>
-          )}
-          <div className="mt-[20px] flex justify-center">
+          {/* Submit button - disabled when empty */}
+          <div className="flex justify-center">
             <button
               type="submit"
-              disabled={isLoading}
-              aria-disabled={isLoading}
-              className="font-poppins h-[48px] w-[450px] rounded-[16px] bg-[rgba(2,0,17,0.7)] text-[18px] font-medium text-white shadow-[0px_10px_30px_0px_rgba(0,0,0,0.25)] transition-all hover:bg-[rgba(2,0,17,0.85)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isLoading || gratitudeText.trim().length === 0}
+              aria-disabled={isLoading || gratitudeText.trim().length === 0}
+              className="flex h-[48px] w-[450px] items-center justify-center rounded-[60px] bg-[rgba(0,0,0,0.75)] px-[20px] py-[10px] font-poppins text-[18px] font-normal tracking-[-0.27px] text-white transition-all hover:bg-[rgba(0,0,0,0.85)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading
                 ? "Sharing gratitude ✨"
