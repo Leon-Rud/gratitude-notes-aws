@@ -1,4 +1,4 @@
-import { Skeleton } from "../Skeleton";
+import { Skeleton } from "../ui";
 
 export function NoteSkeleton() {
   return (

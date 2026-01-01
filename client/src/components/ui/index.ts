@@ -15,3 +15,5 @@ export type { TextareaProps } from './Textarea';
 
 export { Modal, ModalHeader } from './Modal';
 export type { ModalProps, ModalHeaderProps } from './Modal';
+
+export { Skeleton } from './Skeleton';
