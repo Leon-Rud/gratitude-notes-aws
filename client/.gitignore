@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment files (contain secrets)
+.env.local
+.env.production
+.env.development
+
+# Vite compiled config (if accidentally generated)
+vite.config.js
+vite.config.d.ts
+
+# Editor directories
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/

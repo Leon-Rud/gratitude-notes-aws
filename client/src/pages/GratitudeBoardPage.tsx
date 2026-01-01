@@ -8,6 +8,12 @@ import { NoteSkeleton } from "../components/notes/NoteSkeleton";
 import { NoteFormCard } from "../components/notes/NoteFormCard";
 import { FeedbackButton } from "../components/feedback";
 import { useScrollBlur } from "../hooks/useScrollBlur";
+import {
+  GratitudeBoardHeader,
+  NoteCard,
+  DeleteConfirmationModal,
+  DidYouKnowSection,
+} from "../components/board";
 
 interface GratitudeBoardPageProps {
   user: User | null;
@@ -24,14 +30,12 @@ export function GratitudeBoardPage({
 }: GratitudeBoardPageProps) {
   const { user: authUser } = useAuth();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  // Very subtle blur at start, clearer as you scroll down
   const { blurAmount } = useScrollBlur(scrollContainerRef, {
     initialBlur: 5,
     initialOpacity: 0.45,
-    minOpacity: 0.45, // Keep color fixed
+    minOpacity: 0.45,
   });
 
-  const MAX_VISIBLE_LINES = 6;
   const [notes, setNotes] = useState<GratitudeNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,24 +44,17 @@ export function GratitudeBoardPage({
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
 
-  // Get user's note ID from localStorage (with backwards compatibility)
   const userNoteId = localStorage.getItem("gratitude-user-note-id");
-  // Check if user has a note in the loaded notes (by ID or email)
   const userHasNote = notes.some(
     (n) =>
       (userNoteId && n.id === userNoteId) ||
       (authUser?.email && n.email === authUser.email),
   );
-
-  // Show empty note if: not loading, notes have been loaded, and user doesn't have a note
   const shouldShowEmptyNote = !loading && notes.length >= 0 && !userHasNote;
   const addButtonDisabled = userHasNote;
 
   async function load() {
-    // Prevent concurrent requests using ref (synchronous check)
-    if (isLoadingRef.current) {
-      return;
-    }
+    if (isLoadingRef.current) return;
     isLoadingRef.current = true;
 
     try {
@@ -66,8 +63,6 @@ export function GratitudeBoardPage({
       const res = await getTodayNotes();
       let items = res.items;
 
-      // Always sort to show user's note first if they have one
-      // First try to find by localStorage note ID
       const currentUserNoteId = localStorage.getItem("gratitude-user-note-id");
       let userNote: GratitudeNote | undefined;
 
@@ -75,16 +70,13 @@ export function GratitudeBoardPage({
         userNote = items.find((n) => n.id === currentUserNoteId);
       }
 
-      // If not found by ID, try to find by user's email
       if (!userNote && authUser?.email) {
         userNote = items.find((n) => n.email === authUser.email);
-        // If found by email, update localStorage for future reference
         if (userNote) {
           localStorage.setItem("gratitude-user-note-id", userNote.id);
         }
       }
 
-      // Move user's note to the front if found
       if (userNote) {
         items = [userNote, ...items.filter((n) => n.id !== userNote!.id)];
       }
@@ -104,18 +96,18 @@ export function GratitudeBoardPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleDeleteClick(noteId: string) {
-    setDeletingNoteId(noteId);
+  function handleEditNote(note: GratitudeNote) {
+    setEditingNote(note);
+    setShowForm(true);
   }
 
-  function handleDeleteCancel() {
-    setDeletingNoteId(null);
+  function handleDeleteClick(noteId: string) {
+    setDeletingNoteId(noteId);
   }
 
   async function handleDeleteConfirm() {
     if (!deletingNoteId) return;
 
-    // Deleting a note requires an owner token (backend enforces ?token=...).
     const token = localStorage.getItem(
       `gratitude-note-token-${deletingNoteId}`,
     );
@@ -132,14 +124,11 @@ export function GratitudeBoardPage({
     setDeletingNoteId(null);
     try {
       await deleteNote(noteIdToDelete, token);
-      // Remove from localStorage
       localStorage.removeItem(`gratitude-note-${noteIdToDelete}`);
       localStorage.removeItem(`gratitude-note-token-${noteIdToDelete}`);
-      // If this was the user's current note, clear it
       if (noteIdToDelete === userNoteId) {
         localStorage.removeItem("gratitude-user-note-id");
       }
-      // Reload notes
       load();
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to delete note";
@@ -151,7 +140,6 @@ export function GratitudeBoardPage({
     <div className="relative h-screen w-full max-w-[100vw] overflow-hidden">
       {/* Fixed Background with subtle progressive blur */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -160,14 +148,10 @@ export function GratitudeBoardPage({
           }}
           aria-hidden="true"
         />
-
-        {/* Purple tint overlay - fixed opacity */}
         <div
           className="absolute inset-0 bg-[#5F52B2]/45"
           aria-hidden="true"
         />
-
-        {/* Subtle blur - light at start, clearer as you scroll */}
         <div
           className="absolute inset-0 transition-[backdrop-filter] duration-150"
           style={{
@@ -183,64 +167,7 @@ export function GratitudeBoardPage({
         ref={scrollContainerRef}
         className="relative z-10 h-full w-full overflow-y-auto overflow-x-hidden"
       >
-        {/* Header - Figma style */}
-        <header className="flex items-center justify-between border-b border-white/[0.14] bg-[rgba(0,0,0,0.1)] px-8 py-4">
-          {/* Left: Title */}
-          <h1 className="font-manrope text-[24px] font-extrabold uppercase leading-[1.2] tracking-[2.88px] text-[#f1eeea]">
-            Gratitude Board
-          </h1>
-
-          {/* Right: About us, Log out, Avatar */}
-          <div className="flex h-[55px] w-[276px] items-center justify-between">
-            {/* About us with glass pill background */}
-            <a
-              href="#/about"
-              className="relative flex h-[36px] w-[110px] items-center justify-center rounded-[16px] bg-[rgba(255,255,255,0.1)] font-manrope text-[16px] font-semibold uppercase tracking-[1.76px] text-white transition-colors hover:bg-[rgba(255,255,255,0.15)]"
-            >
-              About us
-            </a>
-
-            {/* Log out */}
-            <button
-              onClick={logout}
-              className="font-manrope text-[16px] font-semibold uppercase leading-[35px] tracking-[1.92px] text-white transition-opacity hover:opacity-80"
-            >
-              Log out
-            </button>
-
-            {/* User Avatar */}
-            {user && (
-              <div className="flex items-center rounded px-2">
-                <div className="relative h-[55px] w-[55px]">
-                  {user.picture ? (
-                    <img
-                      src={user.picture}
-                      alt={user.name || "User"}
-                      className="h-full w-full rounded-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.src.startsWith("data:image/svg+xml")) {
-                          target.src = `data:image/svg+xml,${encodeURIComponent(
-                            `<svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55">
-                              <circle cx="27.5" cy="27.5" r="27.5" fill="rgba(255,255,255,0.2)"/>
-                              <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="22" font-family="Arial, sans-serif" font-weight="600">${(user.name || "U").charAt(0).toUpperCase()}</text>
-                            </svg>`,
-                          )}`;
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center rounded-full bg-[rgba(255,255,255,0.2)]">
-                      <span className="font-poppins text-xl font-semibold text-white">
-                        {(user.name || "U").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </header>
+        <GratitudeBoardHeader user={user} logout={logout} />
 
         {missingConfig && (
           <div className="mx-8 mt-4 rounded-lg border border-amber-500/60 bg-amber-500/10 p-4 text-sm text-amber-100">
@@ -252,7 +179,6 @@ export function GratitudeBoardPage({
           </div>
         )}
 
-        {/* Main Content Area */}
         <main className="px-[37px] pt-[26px]">
           {/* Error Banner */}
           {error && (
@@ -275,6 +201,7 @@ export function GratitudeBoardPage({
           {/* Notes Grid */}
           <div className="grid grid-cols-[repeat(auto-fit,336px)] justify-start gap-x-[32px] gap-y-[30px]">
             {loading && notes.length === 0 && (
+              // TODO: Replace with same style loading
               <>
                 <NoteSkeleton />
                 <NoteSkeleton />
@@ -352,103 +279,14 @@ export function GratitudeBoardPage({
                 (authUser?.email && note.email === authUser.email);
 
               return (
-                <article
+                <NoteCard
                   key={note.id}
-                  className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-[16px] border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px]"
-                >
-                  <header className="mb-3 flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="break-words font-poppins text-[20px] font-normal leading-normal text-white">
-                        {note.name}
-                      </h3>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      {isMyNote && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingNote(note);
-                              setShowForm(true);
-                            }}
-                            className="rounded p-1.5 text-white/70 transition-opacity hover:text-white hover:opacity-100"
-                            aria-label="Edit note"
-                            title="Edit note"
-                          >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteClick(note.id)}
-                            disabled={deletingNoteId === note.id}
-                            className="rounded p-1.5 text-white/70 transition-opacity hover:text-red-400 hover:opacity-100 disabled:opacity-50"
-                            aria-label="Delete note"
-                            title="Delete note"
-                          >
-                            {deletingNoteId === note.id ? (
-                              <svg
-                                className="h-4 w-4 animate-spin"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </header>
-                  <div className="note-content max-h-[192px] flex-1 overflow-hidden whitespace-pre-wrap break-words font-poppins text-[20px] font-normal leading-[32px] text-white">
-                    {(() => {
-                      const lines = note.gratitudeText.split("\n");
-                      const visibleLines = lines.slice(0, MAX_VISIBLE_LINES);
-                      const remainingLines = lines.length - MAX_VISIBLE_LINES;
-                      return (
-                        <>
-                          {visibleLines.join("\n")}
-                          {remainingLines > 0 && (
-                            <p className="mt-auto text-right text-[12px] font-medium uppercase tracking-[0.2em] text-white/70">
-                              +{remainingLines} more...
-                            </p>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                </article>
+                  note={note}
+                  isMyNote={!!isMyNote}
+                  onEdit={handleEditNote}
+                  onDelete={handleDeleteClick}
+                  isDeleting={deletingNoteId === note.id}
+                />
               );
             })}
           </div>
@@ -459,40 +297,7 @@ export function GratitudeBoardPage({
             </p>
           )}
 
-          {/* Did you know section - positioned so title is visible on initial load */}
-          <section className="mt-[280px] pb-[60px]">
-            <h2 className="mb-[75px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
-              Did you know that daily gratitude practice:
-            </h2>
-
-            {/* Facts boxes - 2x2 grid layout */}
-            <div className="mx-auto grid max-w-[1124px] grid-cols-1 gap-x-[32px] gap-y-[24px] md:grid-cols-2">
-              {/* Row 1 */}
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
-                <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
-                  Lower Burnout rates by 20%
-                </p>
-              </div>
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
-                <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
-                  Enhance mental strength
-                </p>
-              </div>
-
-              {/* Row 2 */}
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
-                <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
-                  Reduce depression and anxiety
-                </p>
-              </div>
-              <div className="flex h-[82px] items-center justify-center rounded-[50px] bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-[7.5px]">
-                <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
-                  <span className="block">Improves Sleep Quality</span>
-                  <span className="block">by 75%</span>
-                </p>
-              </div>
-            </div>
-          </section>
+          <DidYouKnowSection />
 
           <footer className="py-6 text-center text-xs text-white/50">
             © 2025 Daily Gratitude Notes
@@ -502,13 +307,11 @@ export function GratitudeBoardPage({
         {enableFeedback && <FeedbackButton />}
       </div>
 
-      {/* Form Modal - rendered via portal to cover entire screen */}
+      {/* Form Modal */}
       {showForm &&
         createPortal(
           <>
-            {/* Full screen blur overlay */}
             <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[5px]" />
-            {/* Modal container */}
             <div
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               onClick={(e) => {
@@ -525,7 +328,6 @@ export function GratitudeBoardPage({
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Header with separation line */}
                 <div className="flex h-[80px] items-center justify-between border-b border-[rgba(255,255,255,0.1)] px-[28px]">
                   <h2 className="font-poppins text-[18px] font-normal leading-[27px] text-white">
                     {editingNote ? "Edit Gratitude Note" : "Add Gratitude Note"}
@@ -554,7 +356,6 @@ export function GratitudeBoardPage({
                     </svg>
                   </button>
                 </div>
-                {/* Body */}
                 <div className="h-[370px] overflow-hidden">
                   <NoteFormCard
                     compact
@@ -562,7 +363,6 @@ export function GratitudeBoardPage({
                     onSuccess={() => {
                       setShowForm(false);
                       setEditingNote(null);
-                      // Reload notes to show the updated one
                       load();
                     }}
                   />
@@ -573,59 +373,11 @@ export function GratitudeBoardPage({
           document.body,
         )}
 
-      {/* Delete Confirmation Modal */}
-      {deletingNoteId &&
-        createPortal(
-          <>
-            {/* Full screen blur overlay */}
-            <div className="fixed inset-0 z-40 bg-[rgba(255,255,255,0.05)] backdrop-blur-[5px]" />
-            {/* Modal container */}
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  handleDeleteCancel();
-                }
-              }}
-            >
-              <div
-                className="h-[170px] w-[500px] overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(161deg, rgba(42, 37, 88, 0.95) 0%, rgba(169, 109, 206, 0.9) 100%)",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Header with separation line */}
-                <div className="flex h-[80px] items-center border-b border-[rgba(255,255,255,0.1)] px-[39px]">
-                  <p className="font-poppins text-[18px] font-medium uppercase leading-[1.2] text-white">
-                    Are you sure you want to delete this note?
-                  </p>
-                </div>
-                {/* Body with buttons */}
-                <div className="relative flex h-[90px] items-center justify-center p-[24px]">
-                  {/* Delete button - glass only */}
-                  <button
-                    type="button"
-                    onClick={handleDeleteConfirm}
-                    className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[50px] bg-[rgba(255,255,255,0.1)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
-                  >
-                    Delete
-                  </button>
-                  {/* Cancel button - black */}
-                  <button
-                    type="button"
-                    onClick={handleDeleteCancel}
-                    className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[60px] bg-[rgba(0,0,0,0.75)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>,
-          document.body,
-        )}
+      <DeleteConfirmationModal
+        isOpen={!!deletingNoteId}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeletingNoteId(null)}
+      />
     </div>
   );
 }

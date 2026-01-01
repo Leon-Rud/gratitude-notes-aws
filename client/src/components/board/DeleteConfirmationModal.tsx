@@ -1,0 +1,67 @@
+import { createPortal } from "react-dom";
+
+interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+export function DeleteConfirmationModal({
+  isOpen,
+  onConfirm,
+  onCancel,
+}: DeleteConfirmationModalProps) {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <>
+      {/* Full screen blur overlay */}
+      <div className="fixed inset-0 z-40 bg-[rgba(255,255,255,0.05)] backdrop-blur-[5px]" />
+      {/* Modal container */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onCancel();
+          }
+        }}
+      >
+        <div
+          className="h-[170px] w-[500px] overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+          style={{
+            backgroundImage:
+              "linear-gradient(161deg, rgba(42, 37, 88, 0.95) 0%, rgba(169, 109, 206, 0.9) 100%)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header with separation line */}
+          <div className="flex h-[80px] items-center border-b border-[rgba(255,255,255,0.1)] px-[39px]">
+            <p className="font-poppins text-[18px] font-medium uppercase leading-[1.2] text-white">
+              Are you sure you want to delete this note?
+            </p>
+          </div>
+          {/* Body with buttons */}
+          <div className="relative flex h-[90px] items-center justify-center p-[24px]">
+            {/* Delete button - glass only */}
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[50px] bg-[rgba(255,255,255,0.1)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
+            >
+              Delete
+            </button>
+            {/* Cancel button - black */}
+            <button
+              type="button"
+              onClick={onCancel}
+              className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[60px] bg-[rgba(0,0,0,0.75)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
