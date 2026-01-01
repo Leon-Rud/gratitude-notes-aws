@@ -7,8 +7,8 @@ const facts = [
 
 export function DidYouKnowSection() {
   return (
-    <section className="mt-[280px] pb-[60px]">
-      <h2 className="mb-[75px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
+    <section className="mt-[250px] pb-[60px]">
+      <h2 className="mb-[64px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
         Did you know that daily gratitude practice:
       </h2>
 

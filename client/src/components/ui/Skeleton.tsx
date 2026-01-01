@@ -11,7 +11,7 @@ export function Skeleton({ className = "", width, height }: SkeletonProps) {
 
   return (
     <div
-      className={`animate-shimmer rounded bg-slate-700/50 ${className}`}
+      className={`animate-shimmer rounded bg-white/20 ${className}`}
       style={style}
     />
   );

@@ -22,20 +22,20 @@ export function NoteCard({
   const remainingLines = lines.length - maxVisibleLines;
 
   return (
-    <article className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-glass">
+    <article className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-white/10 bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] mix-blend-darken backdrop-blur-glass">
       <header className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <h3 className="break-words font-poppins text-[20px] font-normal leading-normal text-white">
             {note.name}
           </h3>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0">
           {isMyNote && (
             <>
               <button
                 type="button"
                 onClick={() => onEdit(note)}
-                className="rounded p-1.5 text-white/70 transition-opacity hover:text-white hover:opacity-100"
+                className="rounded px-1 py-1.5 text-white/70 transition-opacity hover:text-white hover:opacity-100"
                 aria-label="Edit note"
                 title="Edit note"
               >
@@ -57,7 +57,7 @@ export function NoteCard({
                 type="button"
                 onClick={() => onDelete(note.id)}
                 disabled={isDeleting}
-                className="rounded p-1.5 text-white/70 transition-opacity hover:text-red-400 hover:opacity-100 disabled:opacity-50"
+                className="rounded px-1 py-1.5 text-white/70 transition-opacity hover:text-red-400 hover:opacity-100 disabled:opacity-50"
                 aria-label="Delete note"
                 title="Delete note"
               >

@@ -42,6 +42,7 @@ export function GratitudeBoardPage({
   const [showForm, setShowForm] = useState(false);
   const [editingNote, setEditingNote] = useState<GratitudeNote | null>(null);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const isLoadingRef = useRef(false);
 
   const userNoteId = localStorage.getItem("gratitude-user-note-id");
@@ -121,7 +122,7 @@ export function GratitudeBoardPage({
     }
 
     const noteIdToDelete = deletingNoteId;
-    setDeletingNoteId(null);
+    setDeleteLoading(true);
     try {
       await deleteNote(noteIdToDelete, token);
       localStorage.removeItem(`gratitude-note-${noteIdToDelete}`);
@@ -129,10 +130,14 @@ export function GratitudeBoardPage({
       if (noteIdToDelete === userNoteId) {
         localStorage.removeItem("gratitude-user-note-id");
       }
+      setDeletingNoteId(null);
       load();
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to delete note";
       setError(message);
+      setDeletingNoteId(null);
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -179,7 +184,7 @@ export function GratitudeBoardPage({
           </div>
         )}
 
-        <main className="px-[37px] pt-[26px]">
+        <main className="px-[36px] pt-[64px]">
           {/* Error Banner */}
           {error && (
             <div className="mb-4 rounded-lg border border-rose-500/60 bg-rose-500/10 p-4 text-sm text-rose-100">
@@ -199,7 +204,7 @@ export function GratitudeBoardPage({
           )}
 
           {/* Notes Grid */}
-          <div className="grid grid-cols-[repeat(auto-fit,336px)] justify-start gap-x-[32px] gap-y-[30px]">
+          <div className="grid grid-cols-[repeat(auto-fill,336px)] justify-start gap-x-[32px] gap-y-[32px]">
             {loading && notes.length === 0 && (
               // TODO: Replace with same style loading
               <>
@@ -314,7 +319,7 @@ export function GratitudeBoardPage({
           setShowForm(false);
           setEditingNote(null);
         }}
-        className="h-[450px] w-[500px] overflow-hidden rounded-card shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+        className="h-[450px] w-[500px] overflow-hidden rounded-card shadow-[0_0_20px_rgba(169,109,206,0.4),0px_24px_60px_0px_rgba(0,0,0,0.25)]"
       >
         <div
           className="h-full w-full"
@@ -348,6 +353,7 @@ export function GratitudeBoardPage({
         isOpen={!!deletingNoteId}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeletingNoteId(null)}
+        isLoading={deleteLoading}
       />
     </div>
   );

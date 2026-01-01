@@ -40,7 +40,7 @@ export function GratitudeBoardHeader({ user, logout }: GratitudeBoardHeaderProps
                   src={user.picture}
                   alt={user.name || "User"}
                   referrerPolicy="no-referrer"
-                  className="h-full w-full rounded-full object-cover"
+                  className="h-full w-full rounded-full border-[1.5px] border-[#999999] object-cover"
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (!target.src.startsWith("data:image/svg+xml")) {
@@ -54,7 +54,7 @@ export function GratitudeBoardHeader({ user, logout }: GratitudeBoardHeaderProps
                   }}
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-[rgba(255,255,255,0.2)]">
+                <div className="flex h-full w-full items-center justify-center rounded-full border-[1.5px] border-[#999999] bg-[rgba(255,255,255,0.2)]">
                   <span className="font-poppins text-xl font-semibold text-white">
                     {(user.name || "U").charAt(0).toUpperCase()}
                   </span>

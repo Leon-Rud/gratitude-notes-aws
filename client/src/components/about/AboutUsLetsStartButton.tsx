@@ -26,7 +26,7 @@ export function AboutUsLetsStartButton() {
   };
 
   return (
-    <div className="relative flex h-[82px] w-[377px] items-center gap-[10px] overflow-hidden rounded-[50px] border-[1.5px] border-white bg-ui-glass p-[10px] backdrop-blur-glass">
+    <div className="relative flex h-[82px] w-[377px] items-center gap-[8px] overflow-hidden rounded-[50px] border-[1.5px] border-white bg-ui-glass p-[10px] backdrop-blur-glass">
         {/* ABOUT - width animates based on active state */}
         <motion.button
           type="button"
