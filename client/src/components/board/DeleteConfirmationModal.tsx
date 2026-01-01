@@ -16,7 +16,7 @@ export function DeleteConfirmationModal({
       isOpen={isOpen}
       onClose={onCancel}
       overlay="blur-light"
-      className="h-[170px] w-[500px] overflow-hidden rounded-[16px] border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+      className="h-[170px] w-[500px] overflow-hidden rounded-card border-thin border-ui-glassBorder shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
     >
       <div
         className="h-full w-full"
@@ -37,7 +37,7 @@ export function DeleteConfirmationModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[50px] bg-[rgba(255,255,255,0.1)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
+            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill-sm bg-ui-glass font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)]"
           >
             Delete
           </button>
@@ -45,7 +45,7 @@ export function DeleteConfirmationModal({
           <button
             type="button"
             onClick={onCancel}
-            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[60px] bg-[rgba(0,0,0,0.75)] font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)]"
+            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill bg-ui-overlay font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)]"
           >
             Cancel
           </button>

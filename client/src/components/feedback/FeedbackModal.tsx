@@ -57,7 +57,7 @@ export function FeedbackModal({
       onClose={onClose}
       overlay="transparent"
       position="bottom-right"
-      className="h-[500px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+      className="h-[500px] w-[500px] overflow-hidden rounded-card shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
     >
       <div
         className="h-full w-full"
@@ -141,7 +141,7 @@ export function FeedbackModal({
               <button
                 type="submit"
                 disabled={isSubmitting || !feedback.trim()}
-                className="group relative flex h-[48px] w-full items-center justify-center gap-3 rounded-[50px] bg-[rgba(0,0,0,0.75)] px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal tracking-[-0.27px] text-white backdrop-blur-[7.5px] transition-all hover:bg-[rgba(255,255,255,0.1)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative flex h-[48px] w-full items-center justify-center gap-3 rounded-pill-sm bg-ui-overlay px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal tracking-[-0.27px] text-white backdrop-blur-glass transition-all hover:bg-ui-glass disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span>{isSubmitting ? "Sending..." : "Share Feedback"}</span>
                 {!isSubmitting && (

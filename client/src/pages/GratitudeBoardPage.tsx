@@ -221,7 +221,7 @@ export function GratitudeBoardPage({
                 setShowForm(true);
               }}
               disabled={addButtonDisabled}
-              className={`relative h-[336px] w-[336px] overflow-hidden rounded-[16px] border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[7.5px] ${
+              className={`relative h-[336px] w-[336px] overflow-hidden rounded-card border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-glass ${
                 addButtonDisabled
                   ? "cursor-not-allowed opacity-60"
                   : "transition-all hover:-translate-y-0.5"
@@ -249,7 +249,7 @@ export function GratitudeBoardPage({
 
             {/* Empty-state dashed placeholder box */}
             {shouldShowEmptyNote && notes.length === 0 && !loading && (
-              <div className="relative h-[336px] w-[336px] overflow-hidden rounded-[16px]">
+              <div className="relative h-[336px] w-[336px] overflow-hidden rounded-card">
                 <svg className="pointer-events-none absolute inset-0 h-full w-full">
                   <rect
                     x="1"
@@ -314,7 +314,7 @@ export function GratitudeBoardPage({
           setShowForm(false);
           setEditingNote(null);
         }}
-        className="h-[450px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+        className="h-[450px] w-[500px] overflow-hidden rounded-card shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
       >
         <div
           className="h-full w-full"

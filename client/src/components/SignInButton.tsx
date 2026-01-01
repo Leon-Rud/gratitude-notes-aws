@@ -9,9 +9,9 @@ type SignInButtonProps = {
 
 export function SignInButton({ onSuccess, onError }: SignInButtonProps) {
   return (
-    <div className="google-login-wrapper relative h-[72px] w-[316px] rounded-[16px]">
+    <div className="google-login-wrapper relative h-[72px] w-[316px] rounded-card">
       {/* Backdrop blur layer */}
-      <div className="absolute inset-0 z-0 rounded-[16px] bg-gradient-to-br from-[#080314] via-[#190a32] to-[#2b0f58] backdrop-blur-[25px]" />
+      <div className="absolute inset-0 z-0 rounded-card bg-gradient-to-br from-[#080314] via-[#190a32] to-[#2b0f58] backdrop-blur-[25px]" />
       {/* GoogleLogin button */}
       <div className="relative z-10 h-full w-full">
         <GoogleLogin
@@ -25,7 +25,7 @@ export function SignInButton({ onSuccess, onError }: SignInButtonProps) {
         />
       </div>
       {/* Custom visual overlay - positioned absolutely to cover the button */}
-      <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 rounded-[16px] bg-[rgba(6,3,15,0.41)]">
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-3 rounded-card bg-[rgba(6,3,15,0.41)]">
         <img src={googleIconUrl} alt="Google" className="h-8 w-8" />
         <span className="font-poppins text-xl font-medium tracking-[-0.4px] text-[#f1eeea]">
           Sign in with Google
@@ -33,7 +33,7 @@ export function SignInButton({ onSuccess, onError }: SignInButtonProps) {
       </div>
       {/* Clickable overlay to trigger Google button */}
       <div
-        className="absolute inset-0 z-30 cursor-pointer rounded-[16px]"
+        className="absolute inset-0 z-30 cursor-pointer rounded-card"
         onClick={(e) => {
           const googleButton = e.currentTarget.parentElement?.querySelector(
             'div[role="button"]',
