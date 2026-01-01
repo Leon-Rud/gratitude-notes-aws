@@ -26,8 +26,15 @@ function mapNote(raw: RawNote): GratitudeNote {
   };
 }
 
+type CreateNotePayload = {
+  name: string;
+  email: string;
+  gratitudeText: string;
+  id?: string;
+};
+
 export async function createGratitudeNote(input: GratitudeNoteInput) {
-  const payload: any = {
+  const payload: CreateNotePayload = {
     name: input.name,
     email: input.email,
     gratitudeText: input.gratitudeText,

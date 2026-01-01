@@ -1,5 +1,4 @@
 import { createPortal } from "react-dom";
-import type { FormEvent } from "react";
 import { Textarea, Typography } from "../ui";
 
 type EmojiOption = {
@@ -119,7 +118,7 @@ export function FeedbackModal({
                   <p className="font-poppins text-[20px] font-light leading-normal text-white">
                     How was your experience?
                   </p>
-                  <div className="flex items-center justify-center gap-[10px]">
+                  <div className="flex items-center justify-start gap-[10px]">
                     {emojis.map((emoji) => (
                       <button
                         key={emoji.value}
