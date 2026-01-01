@@ -13,3 +13,5 @@ export type { InputProps } from './Input';
 export { Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';
 
+export { Modal, ModalHeader } from './Modal';
+export type { ModalProps, ModalHeaderProps } from './Modal';

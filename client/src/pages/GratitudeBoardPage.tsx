@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { deleteNote, getTodayNotes } from "../api/notes";
 import type { GratitudeNote } from "../api/types";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,6 +7,7 @@ import { NoteSkeleton } from "../components/notes/NoteSkeleton";
 import { NoteFormCard } from "../components/notes/NoteFormCard";
 import { FeedbackButton } from "../components/feedback";
 import { useScrollBlur } from "../hooks/useScrollBlur";
+import { Modal, ModalHeader } from "../components/ui";
 import {
   GratitudeBoardHeader,
   NoteCard,
@@ -308,70 +308,41 @@ export function GratitudeBoardPage({
       </div>
 
       {/* Form Modal */}
-      {showForm &&
-        createPortal(
-          <>
-            <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[5px]" />
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setShowForm(false);
-                }
+      <Modal
+        isOpen={showForm}
+        onClose={() => {
+          setShowForm(false);
+          setEditingNote(null);
+        }}
+        className="h-[450px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, rgba(42, 37, 88, 0.95) 0%, rgba(127, 88, 162, 1) 100%)",
+          }}
+        >
+          <ModalHeader
+            title={editingNote ? "Edit Gratitude Note" : "Add Gratitude Note"}
+            onClose={() => {
+              setShowForm(false);
+              setEditingNote(null);
+            }}
+          />
+          <div className="h-[370px] overflow-hidden">
+            <NoteFormCard
+              compact
+              editingNote={editingNote}
+              onSuccess={() => {
+                setShowForm(false);
+                setEditingNote(null);
+                load();
               }}
-            >
-              <div
-                className="h-[450px] w-[500px] overflow-hidden rounded-[16px] shadow-[0px_24px_60px_0px_rgba(0,0,0,0.25)]"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, rgba(42, 37, 88, 0.95) 0%, rgba(127, 88, 162, 1) 100%)",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex h-[80px] items-center justify-between border-b border-[rgba(255,255,255,0.1)] px-[28px]">
-                  <h2 className="font-poppins text-[18px] font-normal leading-[27px] text-white">
-                    {editingNote ? "Edit Gratitude Note" : "Add Gratitude Note"}
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingNote(null);
-                    }}
-                    className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[rgba(255,255,255,0.08)] transition-colors hover:bg-[rgba(255,255,255,0.12)]"
-                    aria-label="Close"
-                  >
-                    <svg
-                      className="h-[14px] w-[14px]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="h-[370px] overflow-hidden">
-                  <NoteFormCard
-                    compact
-                    editingNote={editingNote}
-                    onSuccess={() => {
-                      setShowForm(false);
-                      setEditingNote(null);
-                      load();
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </>,
-          document.body,
-        )}
+            />
+          </div>
+        </div>
+      </Modal>
 
       <DeleteConfirmationModal
         isOpen={!!deletingNoteId}
