@@ -12,9 +12,7 @@ confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 resolve_s3 = true
 resolve_image_repos = true
-# IMPORTANT: Copy this file to samconfig.toml and update SenderEmail with your SES-verified email
-# Or set SENDER_EMAIL environment variable before deploying
 parameter_overrides = [
-    "SenderEmail=your-email@example.com",  # Replace with your SES-verified email
+    "SenderEmail=leonrud6@gmail.com",
     "ArchiveTimeZone=Asia/Jerusalem"
 ]
