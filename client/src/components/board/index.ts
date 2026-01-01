@@ -2,3 +2,7 @@ export { GratitudeBoardHeader } from "./GratitudeBoardHeader";
 export { NoteCard } from "./NoteCard";
 export { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 export { DidYouKnowSection } from "./DidYouKnowSection";
+export { NoteFormCard } from "./NoteFormCard";
+export { NoteSkeleton } from "./NoteSkeleton";
+export { FeedbackButton } from "./FeedbackButton";
+export { FeedbackModal } from "./FeedbackModal";

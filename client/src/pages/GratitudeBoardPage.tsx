@@ -3,8 +3,6 @@ import { deleteNote, getTodayNotes } from "../api/notes";
 import type { GratitudeNote } from "../api/types";
 import { useAuth } from "../contexts/AuthContext";
 import type { User } from "../contexts/AuthContext";
-import { NoteSkeleton, NoteFormCard } from "../components/notes";
-import { FeedbackButton } from "../components/feedback";
 import { useScrollBlur } from "../hooks/useScrollBlur";
 import { Modal, ModalHeader } from "../components/ui";
 import {
@@ -12,6 +10,9 @@ import {
   NoteCard,
   DeleteConfirmationModal,
   DidYouKnowSection,
+  NoteFormCard,
+  NoteSkeleton,
+  FeedbackButton,
 } from "../components/board";
 
 interface GratitudeBoardPageProps {

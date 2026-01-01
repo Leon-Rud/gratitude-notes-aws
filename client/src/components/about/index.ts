@@ -15,6 +15,8 @@ export type { StickyNotesCollageProps } from "./StickyNotesCollage";
 
 export { TornPaperDecoration } from "./TornPaperDecoration";
 
+export { AboutUsLetsStartButton } from "./AboutUsLetsStartButton";
+
 export {
   circularPhotos,
   profiles,

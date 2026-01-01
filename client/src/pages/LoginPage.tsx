@@ -1,4 +1,4 @@
-import { AboutUsLetsStartButton } from "../components/AboutUsLetsStartButton";
+import { AboutUsLetsStartButton } from "../components/about";
 import { Typography } from "../components/ui";
 
 const backgroundImageUrl = "/assets/images/backgrounds/login-background.png";
