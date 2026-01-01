@@ -1,3 +1,5 @@
+import { env } from "../lib/env";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 export type ApiResponse<T> = {
@@ -9,10 +11,6 @@ type Options = {
   body?: Record<string, unknown>;
 };
 
-const rawApiBase = (
-  import.meta.env.VITE_API_BASE_URL as string | undefined
-)?.trim();
-const API_BASE_URL = rawApiBase ? rawApiBase.replace(/\/+$/, "") : undefined;
 const MISSING_CONFIG_MESSAGE =
   "API is not configured. Please set VITE_API_BASE_URL.";
 
@@ -21,7 +19,7 @@ export async function callApi<T>(
   method: HttpMethod,
   opts: Options = {},
 ): Promise<ApiResponse<T>> {
-  if (!API_BASE_URL) {
+  if (!env.apiBaseUrl) {
     throw new Error(MISSING_CONFIG_MESSAGE);
   }
 
@@ -44,7 +42,7 @@ export async function callApi<T>(
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, init);
+    const response = await fetch(`${env.apiBaseUrl}${path}`, init);
     const text = await response.text();
     const payload = text ? (JSON.parse(text) as T) : ({} as T);
 

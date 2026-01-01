@@ -3,16 +3,12 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
 import { AboutPage } from "./pages/AboutPage";
 import { GratitudeBoardPage } from "./pages/GratitudeBoardPage";
+import { env, isApiConfigured } from "./lib/env";
 
 function AppContent() {
-  const missingConfig = !(
-    import.meta.env.VITE_API_BASE_URL as string | undefined
-  )?.trim();
+  const missingConfig = !isApiConfigured();
   const { isAuthenticated, user, logout } = useAuth();
-  const enableFeedback =
-    (
-      import.meta.env.VITE_ENABLE_FEEDBACK as string | undefined
-    )?.toLowerCase() === "true";
+  const enableFeedback = env.enableFeedback;
 
   // Track hash reactively so navigation updates the UI.
   const [hash, setHash] = useState(() => window.location.hash || "#/login");
