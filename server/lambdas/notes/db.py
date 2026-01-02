@@ -96,14 +96,6 @@ def put_note(item: Dict[str, Any]) -> None:
 def update_note_text(note_id: str, gratitude_text: str, *, now_iso: Optional[str] = None) -> None:
     """Overwrite gratitude_text for an existing note (used for 'replace instead of 409')."""
     now_iso = now_iso or datetime.now(timezone.utc).isoformat()
-    if hasattr(TABLE, "items"):
-        item = TABLE.items.get(note_id)
-        if item:
-            item["gratitude_text"] = gratitude_text
-            item["updated_at"] = int(datetime.now(timezone.utc).timestamp())
-            item["updated_at_iso"] = now_iso
-            item["status"] = "active"
-        return
     try:
         TABLE.update_item(
             Key={"id": note_id},
@@ -117,8 +109,6 @@ def update_note_text(note_id: str, gratitude_text: str, *, now_iso: Optional[str
 
 
 def get_note(note_id: str) -> Optional[Dict[str, Any]]:
-    if hasattr(TABLE, "items"):
-        return TABLE.items.get(note_id)
     try:
         res = TABLE.get_item(Key={"id": note_id})
         return res.get("Item")
@@ -142,12 +132,6 @@ def list_notes_for_date(date_str: str) -> List[Dict[str, Any]]:
 
 def mark_deleted(note_id: str, *, now_iso: Optional[str] = None) -> None:
     now_iso = now_iso or datetime.now(timezone.utc).isoformat()
-    if hasattr(TABLE, "items"):
-        item = TABLE.items.get(note_id)
-        if item:
-            item["status"] = "deleted"
-            item["deleted_at"] = now_iso
-        return
     try:
         TABLE.update_item(
             Key={"id": note_id},
