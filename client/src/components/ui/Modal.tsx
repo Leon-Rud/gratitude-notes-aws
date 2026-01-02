@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import { cn } from "../../lib/cn";
+import { CloseIcon } from "./icons";
 
 export type ModalPosition = "center" | "bottom-right";
 export type OverlayVariant = "blur" | "blur-light" | "transparent" | "dark";
@@ -93,19 +94,7 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
           className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-ui-closeButton transition-colors hover:bg-ui-closeButtonHover"
           aria-label="Close"
         >
-          <svg
-            className="h-[14px] w-[14px]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CloseIcon />
         </button>
       )}
     </div>

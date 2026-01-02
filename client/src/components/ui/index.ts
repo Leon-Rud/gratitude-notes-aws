@@ -17,3 +17,5 @@ export { Modal, ModalHeader } from './Modal';
 export type { ModalProps, ModalHeaderProps } from './Modal';
 
 export { Skeleton } from './Skeleton';
+
+export { EditIcon, DeleteIcon, SpinnerIcon, CloseIcon, CircleSpinnerIcon } from './icons';
