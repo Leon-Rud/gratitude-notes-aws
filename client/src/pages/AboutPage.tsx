@@ -13,7 +13,9 @@ import { useScrollBlur } from "../hooks/useScrollBlur";
 
 export function AboutPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { blurAmount, overlayOpacity } = useScrollBlur(scrollContainerRef);
+  const { blurAmount, overlayOpacity } = useScrollBlur(scrollContainerRef, {
+    maxScroll: 2300,
+  });
 
   return (
     <div className="relative h-screen w-full max-w-[100vw] overflow-hidden">
