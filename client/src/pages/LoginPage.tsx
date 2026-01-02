@@ -19,10 +19,10 @@ export function LoginPage() {
         <div className="absolute inset-0 bg-ui-loginOverlay" />
         {/* Progressive blur layer - fades from blurred (top-left) to clear (bottom-right) */}
         <div
-          className="absolute inset-0 backdrop-blur-[20px]"
+          className="absolute inset-0 backdrop-blur-[10px]"
           style={{
-            maskImage: "linear-gradient(135deg, black 0%, black 20%, transparent 80%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(135deg, black 0%, black 20%, transparent 80%, transparent 100%)",
+            maskImage: "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
           }}
         />
       </div>
