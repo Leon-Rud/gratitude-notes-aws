@@ -22,7 +22,7 @@ export function Textarea({
   return (
     <textarea
       className={cn(
-        'w-full resize-none rounded-[8px] border-thin text-white placeholder:text-white/70',
+        'w-full resize-none rounded-input border-thin text-white placeholder:text-white/70',
         'focus:outline-none focus:ring-0',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantStyles[variant],

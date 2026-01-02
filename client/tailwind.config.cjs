@@ -36,6 +36,7 @@ module.exports = {
         'pill-sm': '50px',
         'pill': '60px',
         'card': '16px',
+        'input': '8px',
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],

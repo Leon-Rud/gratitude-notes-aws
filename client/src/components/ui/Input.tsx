@@ -22,7 +22,7 @@ export function Input({
   return (
     <input
       className={cn(
-        'w-full rounded-[8px] border-thin text-white placeholder:text-white/70',
+        'w-full rounded-input border-thin text-white placeholder:text-white/70',
         'focus:outline-none focus:ring-0',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantStyles[variant],

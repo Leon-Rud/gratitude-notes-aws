@@ -129,7 +129,7 @@ export function NoteFormCard({
                 maxLength={MAX_LENGTH}
                 variant="default"
                 error={!!error}
-                className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-[8px] bg-ui-inputSubtle py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
+                className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-input bg-ui-inputSubtle py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
                   error
                     ? "border-[#eb4cd8]"
                     : "border border-ui-inputBorder"
