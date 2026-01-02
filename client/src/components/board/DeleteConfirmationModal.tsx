@@ -19,7 +19,7 @@ export function DeleteConfirmationModal({
       onClose={onCancel}
       overlay="blur-light"
       closeOnOverlayClick={!isLoading}
-      className="h-[170px] w-[500px] overflow-hidden rounded-card border-thin border-ui-glassBorder shadow-[0_0_20px_rgba(169,109,206,0.4),0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+      className="h-[170px] w-[500px] overflow-hidden rounded-card border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0_0_20px_rgba(169,109,206,0.4),0px_24px_60px_0px_rgba(0,0,0,0.25)]"
     >
       <div
         className="h-full w-full"
@@ -41,7 +41,7 @@ export function DeleteConfirmationModal({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-pill-sm bg-ui-glass font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(255,255,255,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-pill-sm bg-ui-glass font-poppins text-[18px] font-normal text-white transition-all hover:bg-ui-glassHover disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -75,7 +75,7 @@ export function DeleteConfirmationModal({
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill bg-ui-overlay font-poppins text-[18px] font-normal text-white transition-all hover:bg-[rgba(0,0,0,0.85)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill bg-ui-overlay font-poppins text-[18px] font-normal text-white transition-all hover:bg-ui-overlayHover disabled:cursor-not-allowed disabled:opacity-70"
           >
             Cancel
           </button>

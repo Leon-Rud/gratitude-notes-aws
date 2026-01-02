@@ -18,7 +18,7 @@ export function GratitudeBoardHeader({ user, logout }: GratitudeBoardHeaderProps
         {/* About us with glass pill background */}
         <a
           href="#/about"
-          className="relative flex h-[36px] w-[110px] items-center justify-center rounded-card bg-ui-glass font-manrope text-[16px] font-semibold uppercase tracking-[1.76px] text-white transition-colors hover:bg-[rgba(255,255,255,0.15)]"
+          className="relative flex h-[36px] w-[110px] items-center justify-center rounded-card bg-ui-glass font-manrope text-[16px] font-semibold uppercase tracking-[1.76px] text-white transition-colors hover:bg-ui-glassHover"
         >
           About us
         </a>

@@ -22,7 +22,7 @@ export function NoteCard({
   const remainingLines = lines.length - maxVisibleLines;
 
   return (
-    <article className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-white/10 bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] mix-blend-darken backdrop-blur-glass">
+    <article className="flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-white/10 bg-[rgba(95,82,178,0.35)] p-6 shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] mix-blend-multiply backdrop-blur-glass">
       <header className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <h3 className="break-words font-poppins text-[20px] font-normal leading-normal text-white">

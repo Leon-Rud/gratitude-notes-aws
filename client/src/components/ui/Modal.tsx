@@ -90,7 +90,7 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
         <button
           type="button"
           onClick={onClose}
-          className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[rgba(255,255,255,0.08)] transition-colors hover:bg-[rgba(255,255,255,0.12)]"
+          className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-ui-closeButton transition-colors hover:bg-ui-closeButtonHover"
           aria-label="Close"
         >
           <svg

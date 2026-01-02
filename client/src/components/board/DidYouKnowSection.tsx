@@ -7,8 +7,8 @@ const facts = [
 
 export function DidYouKnowSection() {
   return (
-    <section className="mt-[250px] pb-[60px]">
-      <h2 className="mb-[64px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
+    <section className="mt-[280px] pb-[60px]">
+      <h2 className="mb-[67px] text-center font-manrope text-[24px] font-semibold leading-[1.2] text-white">
         Did you know that daily gratitude practice:
       </h2>
 
@@ -17,7 +17,7 @@ export function DidYouKnowSection() {
         {facts.map((fact, index) => (
           <div
             key={index}
-            className="flex h-[82px] items-center justify-center rounded-pill-sm bg-[rgba(95,82,178,0.3)] p-[10px] backdrop-blur-glass"
+            className="flex h-[82px] items-center justify-center rounded-pill-sm bg-[rgba(95,82,178,0.3)] p-[10px] mix-blend-multiply backdrop-blur-glass"
           >
             <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
               {Array.isArray(fact) ? (

@@ -13,12 +13,16 @@ module.exports = {
         error: '#dc2626',
         ui: {
           glass: 'rgba(255,255,255,0.1)',
+          glassHover: 'rgba(255,255,255,0.15)',
           overlay: 'rgba(0,0,0,0.75)',
+          overlayHover: 'rgba(0,0,0,0.85)',
           border: '#d0d5dd',
           card: 'rgba(104,104,104,0.2)',
           input: '#524974',
           inputSubtle: '#574a7b',
           glassBorder: 'rgba(255,255,255,0.1)',
+          closeButton: 'rgba(255,255,255,0.08)',
+          closeButtonHover: 'rgba(255,255,255,0.12)',
           loginOverlay: 'rgba(95, 82, 178, 0.45)', // #5F52B2 at 45% opacity
         },
         design: {

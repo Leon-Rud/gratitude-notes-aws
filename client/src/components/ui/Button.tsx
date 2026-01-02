@@ -13,9 +13,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-ui-overlay text-white hover:opacity-90',
+  primary: 'bg-ui-overlay text-white hover:bg-ui-overlayHover',
   outline: 'border border-ui-border bg-transparent text-white hover:bg-ui-glass',
-  ghost: 'bg-transparent text-white hover:bg-ui-glass',
+  ghost: 'bg-transparent text-white hover:bg-ui-glassHover',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

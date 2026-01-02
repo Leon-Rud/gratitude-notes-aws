@@ -57,7 +57,7 @@ export function FeedbackModal({
       onClose={onClose}
       overlay="transparent"
       position="bottom-right"
-      className="h-[500px] w-[500px] overflow-hidden rounded-card shadow-[0_0_20px_rgba(169,109,206,0.4),0px_24px_60px_0px_rgba(0,0,0,0.25)]"
+      className="h-[500px] w-[500px] overflow-hidden rounded-card border-[1.5px] border-[rgba(255,255,255,0.1)] shadow-[0_0_20px_rgba(169,109,206,0.4),0px_24px_60px_0px_rgba(0,0,0,0.25)]"
     >
       <div
         className="h-full w-full"
