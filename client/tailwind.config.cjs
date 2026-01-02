@@ -20,6 +20,7 @@ module.exports = {
           card: 'rgba(104,104,104,0.2)',
           input: '#524974',
           inputSubtle: '#574a7b',
+          inputBorder: 'rgba(255,255,255,0.2)',
           glassBorder: 'rgba(255,255,255,0.1)',
           closeButton: 'rgba(255,255,255,0.08)',
           closeButtonHover: 'rgba(255,255,255,0.12)',

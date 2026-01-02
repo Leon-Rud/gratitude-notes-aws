@@ -4,6 +4,9 @@ import { createGratitudeNote } from "../../api/notes";
 import type { GratitudeNote } from "../../api/types";
 import { Textarea } from "../ui";
 
+const CARD_SHADOW =
+  "shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]";
+
 type NoteFormCardProps = {
   onSuccess?: () => void;
   compact?: boolean; // If true, removes outer section wrapper for modal use
@@ -108,7 +111,7 @@ export function NoteFormCard({
         className={
           compact
             ? "flex h-full flex-col px-[24px] pb-[24px] pt-[12px]"
-            : "flex h-full flex-col rounded-[6px] border border-[rgba(255,255,255,0.12)] bg-[#2a2558] px-[24px] pb-[24px] pt-[12px] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]"
+            : `flex h-full flex-col rounded-[6px] border border-ui-glassBorder bg-[#2a2558] px-[24px] pb-[24px] pt-[12px] ${CARD_SHADOW}`
         }
       >
         <form
@@ -126,10 +129,10 @@ export function NoteFormCard({
                 maxLength={MAX_LENGTH}
                 variant="default"
                 error={!!error}
-                className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-[8px] bg-[#574a7b] py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
+                className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-[8px] bg-ui-inputSubtle py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
                   error
                     ? "border-[#eb4cd8]"
-                    : "border border-[rgba(255,255,255,0.2)]"
+                    : "border border-ui-inputBorder"
                 }`}
                 placeholder="What are you grateful for today?"
                 disabled={isLoading}
