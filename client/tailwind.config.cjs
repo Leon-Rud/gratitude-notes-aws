@@ -24,7 +24,9 @@ module.exports = {
           glassBorder: 'rgba(255,255,255,0.1)',
           closeButton: 'rgba(255,255,255,0.08)',
           closeButtonHover: 'rgba(255,255,255,0.12)',
-          loginOverlay: 'rgba(95, 82, 178, 0.45)', // #5F52B2 at 45% opacity
+          loginOverlay: 'rgba(95, 82, 178, 0.45)',
+          formBackground: '#2a2558',
+          accentPink: '#eb4cd8',
         },
         design: {
           background: 'rgba(144, 126, 173, 0.4)', // #907EAD at 40%

@@ -3,9 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { createGratitudeNote } from "../../api/notes";
 import type { GratitudeNote } from "../../api/types";
 import { Textarea } from "../ui";
-
-const CARD_SHADOW =
-  "shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)]";
+import { CARD_SHADOW } from "../../lib/constants";
 
 type NoteFormCardProps = {
   onSuccess?: () => void;
@@ -111,7 +109,7 @@ export function NoteFormCard({
         className={
           compact
             ? "flex h-full flex-col px-[24px] pb-[24px] pt-[12px]"
-            : `flex h-full flex-col rounded-[6px] border border-ui-glassBorder bg-[#2a2558] px-[24px] pb-[24px] pt-[12px] ${CARD_SHADOW}`
+            : `flex h-full flex-col rounded-[6px] border border-ui-glassBorder bg-ui-formBackground px-[24px] pb-[24px] pt-[12px] ${CARD_SHADOW}`
         }
       >
         <form
@@ -131,7 +129,7 @@ export function NoteFormCard({
                 error={!!error}
                 className={`gratitude-textarea font-poppins h-[258px] w-[448px] overflow-y-auto rounded-input bg-ui-inputSubtle py-[18px] pl-[18px] pr-[21px] text-[20px] font-normal leading-[1.2] ${
                   error
-                    ? "border-[#eb4cd8]"
+                    ? "border-ui-accentPink"
                     : "border border-ui-inputBorder"
                 }`}
                 placeholder="What are you grateful for today?"
@@ -140,7 +138,7 @@ export function NoteFormCard({
               <span
                 className={`font-poppins absolute bottom-[8px] right-[18px] whitespace-nowrap text-[16px] font-normal leading-[26px] opacity-80 ${
                   gratitudeText.length > MAX_LENGTH
-                    ? "text-[#eb4cd8]"
+                    ? "text-ui-accentPink"
                     : "text-[rgba(255,255,255,0.8)]"
                 }`}
               >

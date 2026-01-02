@@ -111,7 +111,6 @@ export function FeedbackModal({
                     </button>
                   ))}
                 </div>
-                <p className="font-poppins text-[16px] font-light italic leading-normal text-[#ddd]"></p>
               </div>
 
               {/* Feedback Textarea */}

@@ -1,3 +1,5 @@
+import { CARD_SHADOW } from "../../lib/constants";
+
 interface AddNoteCardProps {
   disabled: boolean;
   onClick: () => void;
@@ -9,7 +11,7 @@ export function AddNoteCard({ disabled, onClick }: AddNoteCardProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`relative h-[336px] w-[336px] overflow-hidden rounded-card border-[1.5px] border-transparent bg-[rgba(95,82,178,0.35)] shadow-[0px_36px_10px_0px_rgba(0,0,0,0),0px_23px_9px_0px_rgba(0,0,0,0.01),0px_13px_8px_0px_rgba(0,0,0,0.05),0px_6px_6px_0px_rgba(0,0,0,0.09),0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-glass ${
+      className={`relative h-[336px] w-[336px] overflow-hidden rounded-card border-[1.5px] border-transparent bg-ui-loginOverlay ${CARD_SHADOW} backdrop-blur-glass ${
         disabled
           ? "cursor-not-allowed opacity-60"
           : "transition-all hover:-translate-y-0.5"
