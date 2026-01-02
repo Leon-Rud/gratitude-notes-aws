@@ -17,7 +17,8 @@ def _public_fields(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def handler(event, _context):
+def handler(event: dict, _context: object) -> dict:
+    """List all active gratitude notes for today."""
     try:
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         response_items = list_notes_for_date(date_str)
@@ -29,7 +30,7 @@ def handler(event, _context):
             items.append(_public_fields(it))
 
         return json_response(200, {"items": items})
-    except Exception as e:
-        log_event("get_today_notes_error", {"error": str(e)})
-        return json_response(500, {"message": f"Error: {str(e)}"})
+    except Exception as err:  # pylint: disable=broad-except
+        log_event("get_today_notes_error", {"error": str(err)})
+        return json_response(500, {"message": f"Error: {str(err)}"})
 

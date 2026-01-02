@@ -9,7 +9,8 @@ from shared.logging import log_event
 EVENTS = events_client()
 
 
-def handler(event, _context):
+def handler(event: dict, _context: object) -> dict:
+    """Soft-delete a gratitude note by ID (requires owner token)."""
     note_id, error = extract_path_id(event)
     if error:
         return json_response(400, {"message": error})

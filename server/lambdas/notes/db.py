@@ -80,6 +80,7 @@ def create_or_update_note(
 
 
 def put_note(item: Dict[str, Any]) -> None:
+    """Insert a new note into DynamoDB. Raises NoteAlreadyExistsError if ID exists."""
     try:
         TABLE.put_item(
             Item=item,
@@ -109,6 +110,7 @@ def update_note_text(note_id: str, gratitude_text: str, *, now_iso: Optional[str
 
 
 def get_note(note_id: str) -> Optional[Dict[str, Any]]:
+    """Fetch a single note by ID. Returns None if not found."""
     try:
         res = TABLE.get_item(Key={"id": note_id})
         return res.get("Item")
@@ -118,6 +120,7 @@ def get_note(note_id: str) -> Optional[Dict[str, Any]]:
 
 
 def list_notes_for_date(date_str: str) -> List[Dict[str, Any]]:
+    """Query all notes for a given date (YYYY-MM-DD) via GSI."""
     try:
         res = TABLE.query(
             IndexName="gsi_date",
@@ -131,6 +134,7 @@ def list_notes_for_date(date_str: str) -> List[Dict[str, Any]]:
 
 
 def mark_deleted(note_id: str, *, now_iso: Optional[str] = None) -> None:
+    """Soft-delete a note by setting status='deleted' and deleted_at timestamp."""
     now_iso = now_iso or datetime.now(timezone.utc).isoformat()
     try:
         TABLE.update_item(

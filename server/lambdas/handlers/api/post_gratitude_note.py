@@ -49,7 +49,8 @@ def _publish_note_event(note: dict, event_type: str) -> None:
         )
 
 
-def handler(event, _context):
+def handler(event: dict, _context: object) -> dict:
+    """Create or update a gratitude note."""
     body = load_json_body(event)
     
     # Normalize payload: trim name/email, map gratitudeText to gratitude_text
