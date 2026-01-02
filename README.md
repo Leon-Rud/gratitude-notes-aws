@@ -4,17 +4,21 @@
 
 A full-stack serverless application for sharing daily gratitude notes with automatic archiving and event-driven observability.
 
-## Table of Contents
+## 🛠️ Tech Stack
 
-- [Architecture](#architecture)
-- [Quickstart](#quickstart)
-- [API Reference](#api-reference)
-- [Event-Driven Workflow](#event-driven-workflow)
-- [Observability](#observability)
-- [Testing](#testing)
-- [Deployment](#deployment)
+- **Frontend:** React 18 · TypeScript · Vite · Tailwind CSS
+- **Backend:** Python 3.13 · AWS Lambda · DynamoDB
+- **Infrastructure:** API Gateway · EventBridge · Step Functions · CloudWatch · SES
+- **Auth:** Google OAuth 2.0
 
-<a id="architecture"></a>
+## ✨ Features
+
+- **Daily gratitude sharing** – Post one gratitude note per day, visible to everyone
+- **One note per email** – Automatic upsert prevents duplicates
+- **Edit & delete** – Modify your note anytime with owner token
+- **Auto-archive** – Notes automatically cleared at 23:00 local time
+- **Event-driven observability** – Lifecycle events tracked via CloudWatch metrics
+- **Feedback system** – In-app feedback sent directly via email
 
 ## 📐 Architecture
 
@@ -39,15 +43,21 @@ _Real-time CloudWatch dashboard tracking note lifecycle events and system health
 **Components:**
 
 - **API Gateway** – REST endpoints (`/gratitude-notes`, `/feedback`)
-- **Lambda Functions** – `PostGratitudeNotesFn`, `GetTodayGratitudeNotesFn`, `DeleteGratitudeNoteFn`, `PostFeedbackFn`
+- **Lambda Functions** – API handlers + Step Functions tasks
 - **DynamoDB** – `gratitude_notes` table (TTL: 7 days)
 - **Step Functions** – `GratitudeWorkflow` orchestrates archive and observability workflows
-- **EventBridge** – Routes note lifecycle events to Step Functions via `NoteEventRule`
-- **CloudWatch** – Custom metrics (`DailyGratitude` namespace) and dashboard (`Gratitude-notes-workflow-monitor`)
-
-<a id="quickstart"></a>
+- **EventBridge** – Routes note lifecycle events to Step Functions
+- **CloudWatch** – Custom metrics (`DailyGratitude` namespace) and monitoring dashboard
+- **SES** – Sends feedback emails
 
 ## 🚀 Quickstart
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.13
+- AWS CLI (configured)
+- AWS SAM CLI
 
 ### Backend
 
@@ -71,8 +81,6 @@ Create `client/.env.local`:
 VITE_API_BASE_URL=https://xxxxx.execute-api.eu-west-1.amazonaws.com/prod
 VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
-
-<a id="api-reference"></a>
 
 ## 📡 API Reference
 
@@ -98,48 +106,18 @@ curl "$API_BASE_URL/gratitude-notes/today"
 curl -X DELETE "$API_BASE_URL/gratitude-notes/{id}?token={owner_token}"
 ```
 
-<a id="event-driven-workflow"></a>
+## 🔄 Event-Driven Architecture
 
-## 🔄 Event-Driven Workflow
+**Archive:** EventBridge Scheduler triggers Step Functions at 23:00 local time → marks all notes as `deleted`
 
-The `GratitudeWorkflow` Step Functions state machine handles two workflows:
-
-**Archive Workflow:**
-
-- EventBridge Scheduler triggers at 23:00 (Asia/Jerusalem timezone)
-- Directly invokes Step Functions with `{"eventType":"archive.nightly"}`
-- Routes to `StepArchiveNotesFn` → marks day's notes as `deleted` in DynamoDB
-
-**Observability Workflow:**
-
-- API handlers publish EventBridge events with `DetailType`: `gratitude.note.created`, `gratitude.note.updated`, `gratitude.note.deleted`
-- `NoteEventRule` matches these events and triggers Step Functions
-- `StepPrepareEventFn` normalizes events: extracts `eventType` from EventBridge `detail` JSON (e.g., `note.created`, `note.updated`, `note.deleted`)
-- Routes to `RecordNoteEventFn` → emits CloudWatch metrics
-
-**Event Naming:**
-
-- **EventBridge DetailType**: `gratitude.note.{created|updated|deleted}` (used in EventBridge rules)
-- **Step Functions eventType**: `note.{created|updated|deleted}` (normalized by `StepPrepareEventFn`)
-- **CloudWatch MetricName**: `NoteCreated`, `NoteUpdated`, `NoteDeleted` (namespace: `DailyGratitude`)
-
-<a id="observability"></a>
-
+**Observability:** API handlers emit lifecycle events (`note.created`, `note.updated`, `note.deleted`) → Step Functions → CloudWatch metrics (`DailyGratitude` namespace)
 ## 📊 Observability
-
-**CloudWatch Custom Metrics** (namespace: `DailyGratitude`):
-
-- `NoteCreated` – dimension: `EventType=note.created`
-- `NoteUpdated` – dimension: `EventType=note.updated`
-- `NoteDeleted` – dimension: `EventType=note.deleted`
 
 **Dashboard** (`Gratitude-notes-workflow-monitor`):
 
 - Total today summary (created/updated/deleted counts)
 - Activity over time (time-series graph)
 - Lambda errors (24h)
-
-<a id="testing"></a>
 
 ## 🧪 Testing
 
@@ -148,8 +126,6 @@ python -m pytest server/tests/test_gratitude_notes.py
 ```
 
 Tests cover: note creation/updates, listing, deletion, and archive handler. Tests are self-contained (no `conftest.py`).
-
-<a id="deployment"></a>
 
 ## 📦 Deployment
 
