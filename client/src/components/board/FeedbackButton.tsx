@@ -58,7 +58,6 @@ export function FeedbackButton() {
         setHasSubmitted(false); // Reset after modal closes
       }, 2000);
     } catch (err) {
-      console.error("Failed to submit feedback:", err);
       setError(
         err instanceof Error
           ? err.message

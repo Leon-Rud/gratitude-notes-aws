@@ -43,8 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       try {
         setUser(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse stored user:", e);
+      } catch {
         localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     }
@@ -80,13 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         picture: userData.picture || undefined,
       });
       window.location.hash = "#/feed";
-    } catch (error) {
-      console.error("Failed to decode Google token:", error);
+    } catch {
+      // Silently handle token decode errors
     }
   };
 
   const handleGoogleError = () => {
-    console.error("Google login failed");
+    // Silently handle Google login errors
   };
 
   const triggerGoogleLogin = () => {

@@ -159,3 +159,9 @@ post_note.db.create_or_update_note = _mock_create_or_update_note()
 - `_underscore` prefix for private functions
 - Normalize email to lowercase before DB operations
 - Use `log_event(action, data)` for structured logging (auto-redacts PII)
+
+## Git Workflow
+
+- **NEVER** run `git push` without explicit user approval
+- **NEVER** commit changes automatically — always wait for user to validate changes first
+- Commit messages should be concise and descriptive — do NOT include the Claude Code branding footer or Co-Authored-By lines
