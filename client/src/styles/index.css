@@ -132,12 +132,14 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
-/* Ensure Google Sign-In popups appear above page content */
+/* Ensure Google Sign-In popups appear above page content and are clickable */
 iframe[src*="accounts.google.com"],
 #credential_picker_container,
 #credential_picker_iframe,
-div[id^="g_"] {
+div[id^="g_"],
+.S9gUrf-YoZ4jf {
   z-index: 9999 !important;
   position: relative;
+  pointer-events: auto !important;
 }
 
