@@ -132,3 +132,12 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
+/* Ensure Google Sign-In popups appear above page content */
+iframe[src*="accounts.google.com"],
+#credential_picker_container,
+#credential_picker_iframe,
+div[id^="g_"] {
+  z-index: 9999 !important;
+  position: relative;
+}
+
