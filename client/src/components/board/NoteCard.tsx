@@ -8,7 +8,6 @@ interface NoteCardProps {
   onEdit: (note: GratitudeNote) => void;
   onDelete: (noteId: string) => void;
   isDeleting: boolean;
-  maxVisibleLines?: number;
 }
 
 export function NoteCard({
@@ -17,11 +16,7 @@ export function NoteCard({
   onEdit,
   onDelete,
   isDeleting,
-  maxVisibleLines = 6,
 }: NoteCardProps) {
-  const lines = note.gratitudeText.split("\n");
-  const visibleLines = lines.slice(0, maxVisibleLines);
-  const remainingLines = lines.length - maxVisibleLines;
 
   return (
     <article className={`flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-ui-glassBorder bg-ui-loginOverlay p-6 ${CARD_SHADOW} mix-blend-multiply backdrop-blur-glass`}>
@@ -31,13 +26,13 @@ export function NoteCard({
             {note.name}
           </h3>
         </div>
-        <div className="flex shrink-0 items-center gap-0">
+        <div className="flex shrink-0 items-center gap-[9px]">
           {isMyNote && (
             <>
               <button
                 type="button"
                 onClick={() => onEdit(note)}
-                className="rounded px-1 py-1.5 text-white/70 transition-opacity hover:text-white hover:opacity-100"
+                className="text-white transition-opacity hover:opacity-70"
                 aria-label="Edit note"
                 title="Edit note"
               >
@@ -47,23 +42,18 @@ export function NoteCard({
                 type="button"
                 onClick={() => onDelete(note.id)}
                 disabled={isDeleting}
-                className="rounded px-1 py-1.5 text-white/70 transition-opacity hover:text-red-400 hover:opacity-100 disabled:opacity-50"
+                className="text-white transition-opacity hover:opacity-70 disabled:opacity-50"
                 aria-label="Delete note"
                 title="Delete note"
               >
-                {isDeleting ? <SpinnerIcon /> : <DeleteIcon />}
+                {isDeleting ? <SpinnerIcon className="h-4 w-[15px] animate-spin" /> : <DeleteIcon />}
               </button>
             </>
           )}
         </div>
       </header>
-      <div className="note-content max-h-[192px] flex-1 overflow-hidden whitespace-pre-wrap break-words font-poppins text-[20px] font-normal leading-[32px] text-white">
-        {visibleLines.join("\n")}
-        {remainingLines > 0 && (
-          <p className="mt-auto text-right text-[12px] font-medium uppercase tracking-[0.2em] text-white/70">
-            +{remainingLines} more...
-          </p>
-        )}
+      <div className="note-content flex-1 overflow-y-auto whitespace-pre-wrap break-words font-poppins text-[20px] font-normal leading-[32px] text-white">
+        {note.gratitudeText}
       </div>
     </article>
   );
