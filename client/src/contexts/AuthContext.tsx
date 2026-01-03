@@ -108,7 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {/* Hidden Google Login button - rendered once at app root */}
       <div
         ref={googleLoginRef}
-        className="pointer-events-none fixed opacity-0"
+        className="fixed left-0 top-0 z-[10000] [&_*]:pointer-events-auto"
+        style={{ opacity: 0.01 }}
         aria-hidden="true"
       >
         <GoogleLogin
