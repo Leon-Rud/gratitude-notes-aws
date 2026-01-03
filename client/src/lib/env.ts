@@ -22,9 +22,6 @@ export const env = {
 
   /** API base URL - optional, app shows warning if missing */
   apiBaseUrl: getEnvVar("VITE_API_BASE_URL")?.replace(/\/+$/, ""),
-
-  /** Enable feedback button - optional feature flag */
-  enableFeedback: getEnvVar("VITE_ENABLE_FEEDBACK")?.toLowerCase() === "true",
 } as const;
 
 /** Check if API is configured */

@@ -19,14 +19,12 @@ interface GratitudeBoardPageProps {
   user: User | null;
   logout: () => void;
   missingConfig: boolean;
-  enableFeedback: boolean;
 }
 
 export function GratitudeBoardPage({
   user,
   logout,
   missingConfig,
-  enableFeedback,
 }: GratitudeBoardPageProps) {
   const { user: authUser } = useAuth();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -198,7 +196,7 @@ export function GratitudeBoardPage({
           </footer>
         </main>
 
-        {enableFeedback && <FeedbackButton />}
+        <FeedbackButton />
       </div>
 
       {/* Form Modal */}

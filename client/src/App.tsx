@@ -3,12 +3,11 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
 import { AboutPage } from "./pages/AboutPage";
 import { GratitudeBoardPage } from "./pages/GratitudeBoardPage";
-import { env, isApiConfigured } from "./lib/env";
+import { isApiConfigured } from "./lib/env";
 
 function AppContent() {
   const missingConfig = !isApiConfigured();
   const { isAuthenticated, user, logout } = useAuth();
-  const enableFeedback = env.enableFeedback;
 
   // Track hash reactively so navigation updates the UI.
   const [hash, setHash] = useState(() => window.location.hash || "#/login");
@@ -54,7 +53,6 @@ function AppContent() {
             user={user}
             logout={logout}
             missingConfig={missingConfig}
-            enableFeedback={enableFeedback}
           />
         );
       default:
@@ -63,11 +61,10 @@ function AppContent() {
             user={user}
             logout={logout}
             missingConfig={missingConfig}
-            enableFeedback={enableFeedback}
           />
         );
     }
-  }, [isAuthenticated, hash, user, logout, missingConfig, enableFeedback]);
+  }, [isAuthenticated, hash, user, logout, missingConfig]);
 
   return <section className="animate-fade-in">{CurrentPage}</section>;
 }
