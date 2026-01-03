@@ -14,7 +14,7 @@ export function GratitudeBoardHeader({ user, logout }: GratitudeBoardHeaderProps
       </h1>
 
       {/* Right: About us, Log out, Avatar */}
-      <div className="flex h-[55px] w-[276px] items-center justify-between">
+      <div className="flex h-[55px] items-center gap-[20px]">
         {/* About us with glass pill background */}
         <a
           href="#/about"

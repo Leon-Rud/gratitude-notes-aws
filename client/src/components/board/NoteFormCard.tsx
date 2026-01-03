@@ -117,7 +117,10 @@ export function NoteFormCard({
           onSubmit={onSubmit}
           aria-busy={isLoading}
         >
-          <div className="relative flex flex-col">
+          <div className="relative flex flex-col gap-[8px]">
+            <span className="font-poppins text-[14px] font-normal leading-[21px] text-[rgba(255,255,255,0.7)]">
+              You can add one note each day.
+            </span>
             <div className="relative">
               <Textarea
                 id="gratitude"
