@@ -1,23 +1,9 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  ReactNode,
-} from "react";
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 
 export type User = {
   name: string;
   email: string;
-  picture?: string;
-};
-
-type GoogleJwtPayload = {
-  name?: string;
-  email?: string;
   picture?: string;
 };
 
@@ -33,9 +19,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = "gratitude-auth-user";
 
+function AuthProviderInner({
+  children,
+  onLogin,
+}: {
+  children: ReactNode;
+  onLogin: (userData: User) => void;
+}) {
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Fetch user info from Google's userinfo endpoint
+        const userInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          }
+        );
+        const userInfo = await userInfoResponse.json();
+
+        if (!userInfo.name || !userInfo.email) {
+          throw new Error("Google profile is missing required fields (name/email).");
+        }
+
+        onLogin({
+          name: userInfo.name,
+          email: userInfo.email,
+          picture: userInfo.picture || undefined,
+        });
+
+        window.location.hash = "#/feed";
+      } catch (error) {
+        console.error("Failed to get user info:", error);
+      }
+    },
+    onError: (error) => {
+      console.error("Google login error:", error);
+    },
+  });
+
+  return (
+    <TriggerContext.Provider value={googleLogin}>
+      {children}
+    </TriggerContext.Provider>
+  );
+}
+
+const TriggerContext = createContext<(() => void) | null>(null);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const googleLoginRef = useRef<HTMLDivElement>(null);
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -57,42 +92,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
-    // Also clear other gratitude-related localStorage items
     localStorage.removeItem("gratitude-user-email");
     localStorage.removeItem("gratitude-user-note-id");
+    googleLogout();
   };
 
-  const handleGoogleSuccess = (credentialResponse: { credential?: string }) => {
-    try {
-      const token = credentialResponse?.credential;
-      if (!token) {
-        throw new Error("Missing Google credential");
-      }
+  return (
+    <AuthProviderInner onLogin={login}>
+      <AuthContextInner user={user} login={login} logout={logout}>
+        {children}
+      </AuthContextInner>
+    </AuthProviderInner>
+  );
+}
 
-      const userData = jwtDecode<GoogleJwtPayload>(token);
-      if (!userData.name || !userData.email) {
-        throw new Error("Google profile is missing required fields (name/email).");
-      }
-      login({
-        name: userData.name,
-        email: userData.email,
-        picture: userData.picture || undefined,
-      });
-      window.location.hash = "#/feed";
-    } catch {
-      // Silently handle token decode errors
-    }
-  };
-
-  const handleGoogleError = () => {
-    // Silently handle Google login errors
-  };
+function AuthContextInner({
+  children,
+  user,
+  login,
+  logout,
+}: {
+  children: ReactNode;
+  user: User | null;
+  login: (userData: User) => void;
+  logout: () => void;
+}) {
+  const googleLogin = useContext(TriggerContext);
 
   const triggerGoogleLogin = () => {
-    const googleButton = googleLoginRef.current?.querySelector(
-      'div[role="button"]'
-    ) as HTMLElement;
-    googleButton?.click();
+    if (googleLogin) {
+      googleLogin();
+    }
   };
 
   return (
@@ -105,23 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         triggerGoogleLogin,
       }}
     >
-      {/* Hidden Google Login button - rendered once at app root */}
-      <div
-        ref={googleLoginRef}
-        className="fixed left-0 top-0 z-[10000] [&_*]:pointer-events-auto"
-        style={{ opacity: 0.01 }}
-        aria-hidden="true"
-      >
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          useOneTap={false}
-          theme="filled_blue"
-          size="large"
-          text="signin_with"
-          shape="rectangular"
-        />
-      </div>
       {children}
     </AuthContext.Provider>
   );

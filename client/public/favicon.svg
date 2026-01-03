@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Sticky note background -->
+  <rect x="4" y="4" width="24" height="24" rx="2" fill="#FEF3C7"/>
+  <!-- Folded corner -->
+  <path d="M22 4 L28 10 L22 10 Z" fill="#FDE68A"/>
+  <path d="M22 4 L28 10 L22 10 Z" fill="rgba(0,0,0,0.1)"/>
+  <!-- Heart -->
+  <path d="M16 24 C12 20 8 17 8 13 C8 10 10 8 13 8 C14.5 8 16 9 16 9 C16 9 17.5 8 19 8 C22 8 24 10 24 13 C24 17 20 20 16 24Z" fill="#F472B6"/>
+</svg>
