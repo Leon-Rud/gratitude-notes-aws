@@ -17,7 +17,7 @@ export function DidYouKnowSection() {
         {facts.map((fact, index) => (
           <div
             key={index}
-            className="flex h-[82px] items-center justify-center rounded-pill-sm bg-[rgba(95,82,178,0.3)] p-[10px] mix-blend-multiply backdrop-blur-glass"
+            className="flex h-[82px] items-center justify-center rounded-pill-sm bg-[rgba(95,82,178,0.3)] p-[10px] mix-blend-multiply backdrop-blur-glass border-[1.5px] border-transparent transition-colors duration-200 hover:border-[#999]"
           >
             <p className="px-5 py-2.5 text-center font-manrope text-[24px] font-normal leading-[1.2] tracking-[2.4px] text-white">
               {Array.isArray(fact) ? (

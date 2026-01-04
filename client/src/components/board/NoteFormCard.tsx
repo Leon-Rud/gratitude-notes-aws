@@ -155,7 +155,7 @@ export function NoteFormCard({
               type="submit"
               disabled={isLoading || gratitudeText.trim().length === 0}
               aria-disabled={isLoading || gratitudeText.trim().length === 0}
-              className="flex h-[48px] w-[450px] items-center justify-center rounded-pill bg-ui-overlay px-[20px] py-[10px] font-poppins text-[18px] font-normal tracking-[-0.27px] text-white transition-all hover:bg-ui-overlayHover disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-[48px] w-[450px] items-center justify-center rounded-pill border-[1.5px] border-transparent bg-ui-overlay px-[20px] py-[10px] font-poppins text-[18px] font-normal tracking-[-0.27px] text-white transition-all hover:border-white hover:bg-ui-overlayHover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading
                 ? "Sharing gratitude ✨"

@@ -140,7 +140,7 @@ export function FeedbackModal({
               <button
                 type="submit"
                 disabled={isSubmitting || !feedback.trim()}
-                className="group relative flex h-[48px] w-full items-center justify-center gap-3 rounded-pill-sm bg-ui-overlay px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal tracking-[-0.27px] text-white backdrop-blur-glass transition-all hover:bg-ui-glass disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative flex h-[48px] w-full items-center justify-center gap-3 rounded-pill-sm border-[1.5px] border-transparent bg-ui-overlay px-[20px] py-[10px] font-poppins text-[18px] font-normal leading-normal tracking-[-0.27px] text-white backdrop-blur-glass transition-all hover:border-white hover:bg-ui-glass disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span>{isSubmitting ? "Sending..." : "Share Feedback"}</span>
                 {!isSubmitting && (

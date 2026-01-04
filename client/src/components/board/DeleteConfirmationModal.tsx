@@ -42,7 +42,7 @@ export function DeleteConfirmationModal({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-pill-sm bg-ui-glass font-poppins text-[18px] font-normal text-white transition-all hover:bg-ui-glassHover disabled:cursor-not-allowed disabled:opacity-70"
+            className="absolute left-[calc(50%-117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-pill-sm border border-transparent bg-ui-glass font-poppins text-[18px] font-normal text-white transition-all hover:border-white hover:bg-ui-glassHover disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -58,7 +58,7 @@ export function DeleteConfirmationModal({
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill bg-ui-overlay font-poppins text-[18px] font-normal text-white transition-all hover:bg-ui-overlayHover disabled:cursor-not-allowed disabled:opacity-70"
+            className="absolute left-[calc(50%+117px)] top-1/2 flex h-[48px] w-[214px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-pill border border-transparent bg-ui-overlay font-poppins text-[18px] font-normal text-white transition-all hover:border-white hover:bg-ui-overlayHover disabled:cursor-not-allowed disabled:opacity-70"
           >
             Cancel
           </button>

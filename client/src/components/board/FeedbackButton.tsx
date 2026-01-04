@@ -88,7 +88,7 @@ export function FeedbackButton() {
       {createPortal(
         <button
           onClick={() => setIsOpen(true)}
-          className="group fixed bottom-6 right-6 z-[9999] flex items-center justify-center rounded-[60px] border-2 border-solid border-white bg-transparent p-[16px] transition-all hover:bg-white"
+          className="group fixed bottom-6 right-12 z-[9999] flex items-center justify-center rounded-[60px] border-2 border-solid border-white bg-transparent p-[16px] transition-all hover:bg-white"
           style={{ width: "55px", height: "55px" }}
           title="Share feedback"
         >
