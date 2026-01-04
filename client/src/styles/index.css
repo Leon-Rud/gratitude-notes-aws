@@ -107,7 +107,7 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-/* Custom scrollbar for note content */
+/* Custom scrollbar for note content - hidden by default, visible on hover */
 .note-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -118,18 +118,51 @@ body {
 }
 
 .note-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
+  background: transparent;
   border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.note-content:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .note-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Firefox scrollbar */
+/* Firefox scrollbar - hidden by default, visible on hover */
 .note-content {
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.note-content:hover {
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* Custom styled scrollbar for main page containers */
+.page-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.page-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.page-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.page-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Firefox scrollbar for page containers */
+.page-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 /* Ensure Google Sign-In popups appear above page content and are clickable */

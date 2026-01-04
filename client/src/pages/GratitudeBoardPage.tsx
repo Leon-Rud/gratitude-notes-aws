@@ -85,7 +85,7 @@ export function GratitudeBoardPage({
       {/* Scrollable Content */}
       <div
         ref={scrollContainerRef}
-        className="relative z-10 h-full w-full overflow-y-auto overflow-x-hidden"
+        className="page-scroll relative z-10 h-full w-full overflow-y-auto overflow-x-hidden"
       >
         <GratitudeBoardHeader user={user} logout={logout} />
 
@@ -119,7 +119,7 @@ export function GratitudeBoardPage({
           )}
 
           {/* Notes Grid */}
-          <div className="grid grid-cols-[repeat(auto-fill,336px)] justify-start gap-x-[32px] gap-y-[32px]">
+          <div className="grid grid-cols-[repeat(auto-fill,336px)] justify-center gap-x-[24px] gap-y-[24px]">
             {loading && notes.length === 0 && (
               <>
                 <NoteSkeleton />

@@ -23,7 +23,7 @@ export function AboutPage() {
 
       <div
         ref={scrollContainerRef}
-        className="relative z-10 h-full w-full overflow-y-auto overflow-x-hidden"
+        className="page-scroll relative z-10 h-full w-full overflow-y-auto overflow-x-hidden"
       >
         <TornPaperDecoration />
 
