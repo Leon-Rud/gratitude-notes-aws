@@ -28,7 +28,7 @@ const overlayStyles: Record<OverlayVariant, string> = {
 
 const positionStyles: Record<ModalPosition, string> = {
   center: "items-center justify-center",
-  "bottom-right": "items-end justify-end pb-[85px] pr-[24px]",
+  "bottom-right": "items-end justify-end pb-[86px] pr-[40px]",
 };
 
 export function Modal({
