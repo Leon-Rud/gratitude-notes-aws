@@ -4,7 +4,6 @@ import { Typography } from "../components/ui";
 const backgroundImageUrl = "/assets/images/backgrounds/login-background.png";
 
 export function LoginPage() {
-
   return (
     <div className="relative h-screen w-full overflow-hidden">
       {/* Background image with progressive blur */}
@@ -21,36 +20,35 @@ export function LoginPage() {
         <div
           className="absolute inset-0 backdrop-blur-[10px]"
           style={{
-            maskImage: "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
+            maskImage:
+              "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(135deg, black 0%, black 45%, transparent 85%, transparent 100%)",
           }}
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex h-screen flex-col justify-between overflow-hidden">
-        {/* Hero section - Left side */}
-        <div className="flex flex-1 items-start pb-4 pl-[calc(8.33%+2px)] pr-6 pt-20 sm:pl-[calc(8.33%+2px)] sm:pr-10 sm:pt-24 md:pl-[calc(8.33%+2px)] md:pr-16 md:pt-32">
-          <div className="flex w-full max-w-[568px] flex-col px-6 py-4 sm:px-10 sm:py-6 md:px-10 md:py-8">
-            <Typography
-              variant="h1"
-              as="h1"
-              className="text-[48px] uppercase leading-[1.2] tracking-[-0.96px] text-white"
-            >
-              WELCOME TO GRATITUDE BOARD
-            </Typography>
-            <p className="mt-6 whitespace-nowrap font-poppins text-[24px] font-normal leading-[1.2] text-white">
-              A quiet corner to notice the good in your day.
-            </p>
-            <p className="mt-[96px] max-w-[539px] font-poppins text-[24px] font-normal leading-[1.2] text-white">
-              Share what you're thankful for - and see what others appreciate
-              today.
-            </p>
+      {/* Content - responsive padding */}
+      <div className="relative z-10 flex h-screen flex-col justify-center px-6 sm:px-12 lg:px-[142px]">
+        <div className="flex max-w-[568px] flex-col gap-8">
+          <Typography
+            variant="h1"
+            as="h1"
+            className="text-[32px] uppercase leading-[1.2] tracking-[-0.96px] text-white sm:text-[40px] lg:text-[48px]"
+          >
+            WELCOME TO GRATITUDE BOARD
+          </Typography>
 
-            <div className="mt-[32px]">
-              <AboutUsLetsStartButton />
-            </div>
-          </div>
+          <p className="font-poppins text-[18px] font-normal leading-[1.2] text-white sm:text-[20px] lg:text-[24px]">
+            A quiet corner to notice the good in your day.
+          </p>
+
+          <p className="max-w-[539px] font-poppins text-[18px] font-normal leading-[1.2] text-white sm:text-[20px] lg:text-[24px]">
+            Share what you're thankful for - and see what others appreciate
+            today.
+          </p>
+
+          <AboutUsLetsStartButton />
         </div>
       </div>
     </div>
