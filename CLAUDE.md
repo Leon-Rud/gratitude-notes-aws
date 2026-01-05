@@ -1,34 +1,49 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Operational guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-Full-stack serverless application for sharing daily gratitude notes with automatic archiving and event-driven observability.
+Full-stack serverless app for sharing daily gratitude notes with automatic archiving.
+
+## Stack
 
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS (port 5173)
 - **Backend**: Python 3.13 Lambda + DynamoDB + AWS SAM
 - **Region**: eu-west-1
+
+## Default Working Protocol
+
+1. **Plan** — understand the task, ask clarifying questions if needed
+2. **Smallest diff** — make the minimal change that solves the problem
+3. **Run commands** — build/lint/test as appropriate
+4. **Stop** — do not iterate unless user provides new output or feedback
+
+## Token / Usage Policy
+
+- Avoid validation loops (repeated "does this look good?" exchanges)
+- Request minimal artifacts; don't ask for full file contents unless necessary
+- Only request screenshots or Playwright when the task is specifically UI/layout
 
 ## Commands
 
 ### Frontend (client/)
 
 ```bash
-npm run dev          # Start dev server (localhost:5173)
-npm run build        # TypeScript check + Vite build
-npm run lint         # TypeScript checking (tsc --noEmit)
+npm run dev      # Dev server (localhost:5173)
+npm run build    # TypeScript check + Vite build
+npm run lint     # TypeScript checking (tsc --noEmit)
 ```
 
 ### Backend (server/)
 
 ```bash
-python -m pytest server/tests/test_gratitude_notes.py      # Run all tests
-python -m pytest server/tests/test_gratitude_notes.py -v   # Verbose output
+python -m pytest server/tests/test_gratitude_notes.py      # All tests
+python -m pytest server/tests/test_gratitude_notes.py -v   # Verbose
 python -m pytest server/tests/test_gratitude_notes.py::test_name  # Single test
 ```
 
-### Deployment
+## Deployment
 
 ```bash
 ./scripts/deploy_backend.sh               # Deploy SAM stack
@@ -36,116 +51,37 @@ python -m pytest server/tests/test_gratitude_notes.py::test_name  # Single test
 ./scripts/deploy_frontend.sh              # Deploy to S3/CloudFront
 ```
 
-### Environment
-
-```bash
-direnv allow           # Auto-loads .venv when cd'ing into project
-source .venv/bin/activate
-```
-
-## Architecture
-
-### Frontend Structure
+## Repo Structure
 
 ```
 client/src/
-├── api/              # API client (callApi<T>() generic function)
-├── components/
-│   ├── ui/           # Design system primitives (Button, Card, Input, Textarea, Typography)
-│   └── notes/        # Note-related components
-├── contexts/         # AuthContext (Google OAuth)
-├── pages/            # Page components
-└── lib/cn.ts         # Class merging utility (clsx + tailwind-merge)
-```
+├── api/           # API client (callApi<T>())
+├── components/ui/ # Design system primitives
+├── components/    # Feature components
+├── contexts/      # AuthContext (Google OAuth)
+├── pages/         # Page components
+└── lib/cn.ts      # Class merging utility
 
-### Backend Structure
-
-```
 server/
-├── lambdas/
-│   ├── handlers/     # API handlers + Step Functions handlers
-│   ├── notes/db.py   # DynamoDB access layer
-│   └── shared/       # Config, logging, email, API helpers
-├── infra/
-│   └── template.yaml # SAM CloudFormation template
+├── lambdas/handlers/  # API + Step Functions handlers
+├── lambdas/notes/     # DynamoDB access layer
+├── lambdas/shared/    # Config, logging, email, API helpers
+├── infra/template.yaml
 └── tests/
 ```
 
-### API Endpoints
+## Design System Rules
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/gratitude-notes` | Create/update note (upsert per email per day) |
-| GET | `/gratitude-notes/today` | List active notes for today |
-| DELETE | `/gratitude-notes/{id}?token=OWNER_TOKEN` | Soft-delete note |
-| POST | `/feedback` | Email feedback via SES |
+**Use tokens + primitives first.** Before writing custom Tailwind classes:
+1. Check design tokens in `tailwind.config.cjs`
+2. Check UI primitives in `client/src/components/ui/`
 
-### DynamoDB Schema
+→ Full reference: [client/DESIGN_SYSTEM.md](client/DESIGN_SYSTEM.md)
 
-Table `gratitude_notes` with:
-- **GSI1** (`gsi_date`): `date` + `created_at` - list notes by day
-- **GSI2** (`gsi_email_date`): `email` + `date` - upsert validation
-- **TTL**: 7 days auto-cleanup
-
-### Event-Driven Workflows
-
-- **Archive**: EventBridge Scheduler (23:00 local) → Step Functions → marks notes as `deleted`
-- **Observability**: API handlers emit events → EventBridge → Step Functions → CloudWatch metrics
-
-Events published: `gratitude.note.{created|updated|deleted}`
-
-## Design System
-
-**Rule: Use tokens + primitives first.** Before writing custom Tailwind classes, check:
-1. Design tokens in `tailwind.config.cjs`
-2. UI primitives in `client/src/components/ui/`
-
-See `client/DESIGN_SYSTEM.md` for full documentation.
-
-### Key Tokens
-
-- Colors: `bg-ui-glass`, `bg-ui-overlay`, `border-ui-glassBorder`, `bg-ui-input`
-- Radii: `rounded-card` (16px), `rounded-pill` (60px)
-- Blur: `backdrop-blur-glass` (7.5px), `backdrop-blur-hero` (17.5px)
-- Fonts: `font-poppins` (headings), `font-manrope` (body)
-
-### UI Primitives
-
-- `Button` - variants: primary/outline/ghost, sizes: sm/md/lg/xl
-- `Typography` - variants: h1/h2/body/n1/label/caption
-- `Card` - variants: glass/solid
-- `Input`, `Textarea` - variants: default/subtle, error state
-
-## Authentication
+## Auth + API Notes
 
 - **Frontend**: Google OAuth via `@react-oauth/google`, stored in `localStorage`
 - **Backend**: No auth for create/list; DELETE requires `owner_token` from POST response
-
-## Environment Variables
-
-### Frontend (client/.env.local)
-
-```
-VITE_API_BASE_URL=https://xxxxx.execute-api.eu-west-1.amazonaws.com/prod
-VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-```
-
-### Backend (set via SAM parameters)
-
-- `NOTES_TABLE`, `SENDER_EMAIL`, `EVENT_BUS_NAME`, `ARCHIVE_TIMEZONE`
-
-## Testing Patterns
-
-Tests mock DB functions directly without `conftest.py`:
-
-```python
-# Add lambdas to sys.path
-LAMBDA_DIR = Path(__file__).resolve().parents[1] / "lambdas"
-sys.path.insert(0, str(LAMBDA_DIR))
-
-# Mock in tests
-post_note.db.create_or_update_note = _mock_create_or_update_note()
-```
 
 ## Code Conventions
 
@@ -160,7 +96,18 @@ post_note.db.create_or_update_note = _mock_create_or_update_note()
 - Normalize email to lowercase before DB operations
 - Use `log_event(action, data)` for structured logging (auto-redacts PII)
 
-## Git Workflow
+## When to Read What
+
+Only load these docs when the task requires deeper reference:
+
+| Task involves... | Read |
+|------------------|------|
+| UI, layout, tokens, components | [client/DESIGN_SYSTEM.md](client/DESIGN_SYSTEM.md) |
+| API endpoints, DynamoDB, workflows, events | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Environment variables, config | [docs/ENV.md](docs/ENV.md) |
+| Tests, mocking patterns | [docs/TESTING.md](docs/TESTING.md) |
+
+## Git Rules
 
 - **NEVER** run `git push` without explicit user approval
 - **NEVER** commit changes automatically — always wait for user to validate changes first
