@@ -14,7 +14,7 @@ import { useScrollBlur } from "../hooks/useScrollBlur";
 export function AboutPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { blurAmount, overlayOpacity } = useScrollBlur(scrollContainerRef, {
-    maxScroll: 2300,
+    maxScroll: 1800,
   });
 
   return (

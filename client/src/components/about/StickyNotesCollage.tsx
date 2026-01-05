@@ -1,4 +1,5 @@
 import { stickyNotes, type StickyNote } from "./data";
+import { HOVER_SCALE_EFFECT } from "../../lib/constants";
 
 export interface StickyNotesCollageProps {
   notes?: StickyNote[];
@@ -14,7 +15,7 @@ export function StickyNotesCollage({
         {notes.map((note, index) => (
           <div
             key={note.src}
-            className="absolute overflow-hidden rounded-card"
+            className={`absolute overflow-hidden rounded-card ${HOVER_SCALE_EFFECT} hover:z-50`}
             style={{
               left: note.left,
               top: note.top,
@@ -41,7 +42,7 @@ export function StickyNotesCollage({
         {notes.map((note) => (
           <div
             key={note.src}
-            className="overflow-hidden rounded-card"
+            className={`overflow-hidden rounded-card ${HOVER_SCALE_EFFECT} hover:z-10`}
             style={{ aspectRatio: `${note.width} / ${note.height}` }}
           >
             <img
