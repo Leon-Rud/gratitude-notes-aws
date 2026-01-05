@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Typography } from "../components/ui";
 import {
   AboutBackground,
-  CircularPhotosGallery,
+  NotesPhotosGallery,
   ProfileCard,
   StartSharingButton,
   StickyNotesCollage,
@@ -19,7 +19,10 @@ export function AboutPage() {
 
   return (
     <div className="relative h-screen w-full max-w-[100vw] overflow-hidden">
-      <AboutBackground blurAmount={blurAmount} overlayOpacity={overlayOpacity} />
+      <AboutBackground
+        blurAmount={blurAmount}
+        overlayOpacity={overlayOpacity}
+      />
 
       <div
         ref={scrollContainerRef}
@@ -29,7 +32,7 @@ export function AboutPage() {
 
         <div className="mx-auto max-w-[1512px] overflow-x-hidden px-6 sm:px-10 lg:px-[142px]">
           {/* "HEY, WE ARE" heading */}
-          <div className="pt-[150px]">
+          <div className="pt-[96px]">
             <Typography
               variant="h2"
               as="h2"
@@ -39,15 +42,15 @@ export function AboutPage() {
             </Typography>
           </div>
 
-          {/* Profile Cards */}
-          <div className="mt-[118px] flex flex-col gap-y-8 lg:flex-row lg:flex-wrap lg:gap-x-[112px]">
+          {/* Profile Cards - side by side on desktop */}
+          <div className="mt-[96px] flex flex-col gap-y-8 lg:flex-row lg:items-center lg:justify-between lg:gap-x-8">
             {profiles.map((profile) => (
               <ProfileCard key={profile.name} {...profile} />
             ))}
           </div>
 
-          {/* "OUR STORY" section with bigger gaps */}
-          <div className="mt-[140px]">
+          {/* "OUR STORY" section */}
+          <div className="mt-[96px]">
             <Typography
               variant="h2"
               as="h2"
@@ -58,42 +61,39 @@ export function AboutPage() {
           </div>
 
           {/* First story paragraph */}
-          <p className="mt-[107px] w-full font-manrope text-[24px] font-semibold uppercase leading-[1.2] tracking-[2.88px] text-design-text lg:w-[600px]">
-            In 2020 during lock down, we began leaving sticky notes on our
-            bathroom wall to ensure we always saw and appreciated each other.
+          <p className="mt-[64px] w-full font-manrope text-[24px] font-semibold leading-[1.2] tracking-[2.88px] text-design-text lg:w-[540px]">
+            In 2020, during lockdown, we started leaving sticky notes on our
+            bathroom wall so we wouldn't forget to appreciate each other.
           </p>
 
-          <div className="mt-[40px]">
+          {/* Notes Photos + Story paragraph - side by side on desktop */}
+          <div className="mt-[64px] flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <NotesPhotosGallery />
+            <p className="w-full font-manrope text-[24px] font-semibold leading-[1.2] tracking-[2.88px] text-design-text lg:w-[600px]">
+              It began as simple gratitude messages, but soon friends who
+              visited added their own notes – jokes, shout-outs, little
+              reminders to be kind to themselves.
+              <br />
+              <br />
+              The wall turned into a living thing: some notes fell, new ones
+              appeared, and the mood changed with us.
+            </p>
+          </div>
+
+          {/* Sticky Notes Collage */}
+          <div className="mt-[64px]">
             <StickyNotesCollage />
           </div>
 
-          {/* Second story paragraph */}
-          <p className="mt-[40px] w-full font-manrope text-[24px] font-semibold uppercase leading-[1.2] tracking-[2.88px] text-design-text lg:ml-auto lg:w-[600px]">
-            This little habit became our inspiration, during a period of
-            unexpected unemployment. It served as a tool to stay grounded, true
-            to ourselves and remember, that everything is temporary, so why not
-            enjoy it?
+          {/* Philosophy text */}
+          <p className="mt-[64px] w-full font-manrope text-[24px] font-semibold leading-[1.2] tracking-[2.88px] text-design-text lg:w-[600px]">
+            Gratitude Board is our digital version of that wall – a place where
+            anyone can share a thought or a moment of gratitude, knowing the
+            notes will reset at the end of each day. Every day is a chance to
+            start over.
           </p>
 
-          {/* Philosophy text + circular photos */}
-          <div className="mt-[40px] flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-0">
-            <p className="w-full font-manrope text-[24px] font-semibold uppercase leading-[1.2] tracking-[2.88px] text-design-text lg:w-[600px] lg:shrink-0">
-              We believe technology should help us feel the way those notes did:
-              simple, kind and fun.
-            </p>
-            <div className="lg:ml-[71px]">
-              <CircularPhotosGallery />
-            </div>
-          </div>
-
-          {/* CTA text */}
-          <p className="mt-[70px] w-full font-manrope text-[24px] font-medium leading-[1.2] tracking-[2.88px] text-design-text lg:w-[600px]">
-            What brought <span className="font-extrabold">you</span> a little
-            joy today - a message from someone you love? A meal that hit the
-            spot? Or maybe a really cute cat?
-          </p>
-
-          <div className="mt-[70px]">
+          <div className="mt-[64px]">
             <StartSharingButton />
           </div>
 

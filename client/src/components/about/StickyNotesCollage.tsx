@@ -10,16 +10,16 @@ export function StickyNotesCollage({
   return (
     <>
       {/* Desktop: absolute positioning */}
-      <div className="relative hidden h-[489px] w-full overflow-hidden lg:block lg:max-w-[1228px]">
+      <div className="relative hidden h-[427px] w-full overflow-hidden lg:block lg:max-w-[1250px]">
         {notes.map((note, index) => (
           <div
             key={note.src}
-            className={`absolute overflow-hidden rounded-card ${
-              note.width === 182 ? "h-[182px] w-[182px]" : "h-[220px] w-[220px]"
-            }`}
+            className="absolute overflow-hidden rounded-card"
             style={{
               left: note.left,
               top: note.top,
+              width: `${note.width}px`,
+              height: `${note.height}px`,
               zIndex: index + 1,
             }}
           >

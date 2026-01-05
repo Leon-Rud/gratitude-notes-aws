@@ -18,42 +18,42 @@ export const stickyNotes: StickyNote[] = [
   {
     src: "/assets/about/notes/note-1.png",
     alt: "Gratitude note about appreciation",
-    left: "741px",
+    left: "740px",
     top: "0px",
-    width: 220,
-    height: 220,
+    width: 248,
+    height: 248,
   },
   {
     src: "/assets/about/notes/note-2.png",
     alt: "Gratitude note about connection",
-    left: "481px",
-    top: "145px",
-    width: 220,
-    height: 220,
+    left: "523px",
+    top: "90px",
+    width: 248,
+    height: 248,
   },
   {
     src: "/assets/about/notes/note-3.png",
     alt: "Gratitude note about reflection",
     left: "0px",
-    top: "145px",
-    width: 220,
-    height: 220,
+    top: "62px",
+    width: 274,
+    height: 274,
   },
   {
     src: "/assets/about/notes/note-4.png",
     alt: "Gratitude note about moments",
-    left: "224px",
-    top: "269px",
-    width: 220,
-    height: 220,
+    left: "253px",
+    top: "179px",
+    width: 248,
+    height: 248,
   },
   {
     src: "/assets/about/notes/note-5.png",
     alt: "Gratitude note about gratitude",
-    left: "900px",
-    top: "110px",
-    width: 182,
-    height: 182,
+    left: "910px",
+    top: "80px",
+    width: 271,
+    height: 271,
   },
 ];
 
@@ -84,6 +84,7 @@ export interface Profile {
   nameTracking: string;
   avatarSrc: string;
   socialLinks: SocialIcon[];
+  variant: "default" | "reversed";
 }
 
 export const profiles: Profile[] = [
@@ -94,6 +95,7 @@ export const profiles: Profile[] = [
       "I wire up the logic behind the screen, so every action quietly does the right thing.\n\nKeeping the magic from breaking.",
     nameTracking: "tracking-[4.32px]",
     avatarSrc: "/assets/images/photos/leon-photo.png",
+    variant: "reversed",
     socialLinks: [
       {
         src: "/assets/about/icons/linkedin-icon.svg",
@@ -122,6 +124,7 @@ export const profiles: Profile[] = [
       "I shape the user journey, ensuring everything feels like a thoughtful interaction.\n\nMaking the experience feel human.",
     nameTracking: "tracking-[3.6px]",
     avatarSrc: "/assets/images/photos/sasha-photo.png",
+    variant: "default",
     socialLinks: [
       {
         src: "/assets/about/icons/linkedin-icon.svg",

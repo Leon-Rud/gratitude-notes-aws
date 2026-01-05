@@ -4,6 +4,8 @@ export type { AboutBackgroundProps } from "./AboutBackground";
 export { CircularPhotosGallery } from "./CircularPhotosGallery";
 export type { CircularPhotosGalleryProps } from "./CircularPhotosGallery";
 
+export { NotesPhotosGallery } from "./NotesPhotosGallery";
+
 export { ProfileCard } from "./ProfileCard";
 export type { ProfileCardProps } from "./ProfileCard";
 
