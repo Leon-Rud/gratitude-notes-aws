@@ -119,7 +119,7 @@ export function GratitudeBoardPage({
           )}
 
           {/* Notes Grid */}
-          <div className="grid grid-cols-[repeat(auto-fill,336px)] justify-center gap-x-[24px] gap-y-[24px]">
+          <div className="grid grid-cols-[repeat(auto-fit,320px)] justify-center gap-[24px]">
             {loading && notes.length === 0 && (
               <>
                 <NoteSkeleton />
@@ -141,7 +141,7 @@ export function GratitudeBoardPage({
 
             {/* Empty-state dashed placeholder box */}
             {shouldShowEmptyNote && notes.length === 0 && !loading && (
-              <div className="relative h-[336px] w-[336px] overflow-hidden rounded-card">
+              <div className="relative h-[320px] w-[320px] overflow-hidden rounded-card">
                 <svg className="pointer-events-none absolute inset-0 h-full w-full">
                   <rect
                     x="1"

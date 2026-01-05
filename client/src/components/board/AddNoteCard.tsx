@@ -11,7 +11,7 @@ export function AddNoteCard({ disabled, onClick }: AddNoteCardProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`group relative h-[336px] w-[336px] overflow-hidden rounded-card border-[1.5px] border-transparent bg-ui-loginOverlay ${CARD_SHADOW} backdrop-blur-glass ${
+      className={`group relative h-[320px] w-[320px] overflow-hidden rounded-card border-[1.5px] border-transparent bg-ui-loginOverlay ${CARD_SHADOW} backdrop-blur-glass ${
         disabled
           ? "cursor-not-allowed opacity-60"
           : "transition-all hover:-translate-y-0.5"

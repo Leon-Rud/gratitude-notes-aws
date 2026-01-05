@@ -19,7 +19,7 @@ export function NoteCard({
 }: NoteCardProps) {
 
   return (
-    <article className={`flex h-[336px] w-[336px] flex-col overflow-hidden rounded-card border-[1.5px] border-ui-glassBorder bg-ui-loginOverlay p-6 ${CARD_SHADOW} mix-blend-multiply backdrop-blur-glass`}>
+    <article className={`flex h-[320px] w-[320px] flex-col overflow-hidden rounded-card border-[1.5px] border-ui-glassBorder bg-ui-loginOverlay p-6 ${CARD_SHADOW} mix-blend-multiply backdrop-blur-glass`}>
       <header className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <h3 className="break-words font-poppins text-[20px] font-normal leading-normal text-white">
