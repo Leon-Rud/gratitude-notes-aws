@@ -33,7 +33,7 @@ export function GratitudeBoardHeader({ user, logout }: GratitudeBoardHeaderProps
 
         {/* User Avatar */}
         {user && (
-          <div className="flex items-center rounded px-2">
+          <div className="flex items-center rounded px-0">
             <div className="relative h-[55px] w-[55px]">
               {user.picture ? (
                 <img
