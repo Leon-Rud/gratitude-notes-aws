@@ -31,7 +31,7 @@ export function NoteFormCard({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const MAX_LENGTH = 200;
-  const MAX_LINES = 6;
+  const MAX_LINES = 7;
 
   function enforceMaxLines(value: string) {
     const lines = value.split("\n");
@@ -124,7 +124,7 @@ export function NoteFormCard({
             <div className="relative">
               <Textarea
                 id="gratitude"
-                rows={6}
+                rows={7}
                 value={gratitudeText}
                 onChange={handleGratitudeChange}
                 maxLength={MAX_LENGTH}
