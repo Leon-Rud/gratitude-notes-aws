@@ -1,7 +1,5 @@
 # Daily Gratitude Notes
 
-**🚧 This is an ongoing project and still under active development.**
-
 A full-stack serverless application for sharing daily gratitude notes with automatic archiving and event-driven observability.
 
 ## 🌐 Live Demo
