@@ -119,7 +119,7 @@ export function GratitudeBoardPage({
           )}
 
           {/* Notes Grid */}
-          <div className="grid grid-cols-[repeat(auto-fit,320px)] justify-center gap-[24px]">
+          <div className="grid grid-cols-[repeat(auto-fit,320px)] justify-start gap-[24px]">
             {loading && notes.length === 0 && (
               <>
                 <NoteSkeleton />
