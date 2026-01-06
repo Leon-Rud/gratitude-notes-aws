@@ -119,8 +119,7 @@ export function NoteFormCard({
         >
           <div className="relative flex flex-col gap-[8px]">
             <span className="font-poppins text-[14px] font-normal leading-[21px] text-[rgba(255,255,255,0.7)]">
-              You can add one note each day.
-            </span>
+            ONE NOTE PER PERSON PER DAY. ALL NOTES RESET AT MIDNIGHT.           </span>
             <div className="relative">
               <Textarea
                 id="gratitude"
