@@ -4,6 +4,12 @@
 
 A full-stack serverless application for sharing daily gratitude notes with automatic archiving and event-driven observability.
 
+## 🌐 Live Demo
+
+**Try it out:** [https://gratitude-notes-aws.vercel.app/#/login](https://gratitude-notes-aws.vercel.app/#/login)
+
+Sign in with Google OAuth to start sharing your daily gratitude notes!
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** React 18 · TypeScript · Vite · Tailwind CSS
@@ -19,6 +25,28 @@ A full-stack serverless application for sharing daily gratitude notes with autom
 - **Auto-archive** – Notes automatically cleared at 23:00 local time
 - **Event-driven observability** – Lifecycle events tracked via CloudWatch metrics
 - **Feedback system** – In-app feedback sent directly via email
+
+## 📸 Screenshots
+
+### Login Page
+
+![Login Page](docs/screenshots/login-page.png)
+
+_Google OAuth authentication page with beautiful background design._
+
+### About Page
+
+![About Us 1](docs/screenshots/abous-us-1.png)
+
+![About Us 2](docs/screenshots/about-us-2.png)
+
+_About page showcasing the team and project information._
+
+### Gratitude Board
+
+![Gratitude Board](docs/screenshots/gratitude-board-page.png)
+
+_Main board displaying all daily gratitude notes with add, edit, and delete functionality._
 
 ## 📐 Architecture
 
@@ -111,6 +139,7 @@ curl -X DELETE "$API_BASE_URL/gratitude-notes/{id}?token={owner_token}"
 **Archive:** EventBridge Scheduler triggers Step Functions at 23:00 local time → marks all notes as `deleted`
 
 **Observability:** API handlers emit lifecycle events (`note.created`, `note.updated`, `note.deleted`) → Step Functions → CloudWatch metrics (`DailyGratitude` namespace)
+
 ## 📊 Observability
 
 **Dashboard** (`Gratitude-notes-workflow-monitor`):
