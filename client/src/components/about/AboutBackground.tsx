@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export interface AboutBackgroundProps {
   blurAmount: number;
   overlayOpacity: number;
@@ -7,6 +9,14 @@ export function AboutBackground({
   blurAmount,
   overlayOpacity,
 }: AboutBackgroundProps) {
+  const [bgLoaded, setBgLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/assets/about/background/about-us-background.png";
+    img.onload = () => setBgLoaded(true);
+  }, []);
+
   return (
     <div className="pointer-events-none absolute inset-0 z-0">
       {/* Base purple background */}
@@ -14,7 +24,9 @@ export function AboutBackground({
 
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500 ${
+          bgLoaded ? "opacity-100" : "opacity-0"
+        }`}
         style={{
           backgroundImage:
             "url('/assets/about/background/about-us-background.png')",

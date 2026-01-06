@@ -1,4 +1,5 @@
 import type { SocialIcon } from "./data";
+import { useState } from "react";
 
 export interface ProfileCardProps {
   name: string;
@@ -17,16 +18,29 @@ export function ProfileCard({
   nameTracking = "tracking-[3.6px]",
   socialLinks,
 }: ProfileCardProps) {
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+
   return (
     <div className="flex w-full flex-row items-start gap-6 lg:max-w-[515px]">
       {/* Avatar */}
-      <img
-        src={avatarSrc}
-        alt={name}
-        width={160}
-        height={160}
-        className="h-[160px] w-[160px] shrink-0 rounded-full border border-white object-cover"
-      />
+      <div className="relative h-[160px] w-[160px] shrink-0">
+        {!avatarLoaded && (
+          <div className="absolute inset-0 animate-pulse rounded-full bg-white/15" />
+        )}
+        <img
+          src={avatarSrc}
+          alt={name}
+          width={160}
+          height={160}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          onLoad={() => setAvatarLoaded(true)}
+          className={`h-[160px] w-[160px] rounded-full border border-white object-cover transition-opacity duration-300 ${
+            avatarLoaded ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      </div>
 
       {/* Text content */}
       <div className="flex min-w-0 flex-col gap-[32px]">
