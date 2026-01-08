@@ -35,7 +35,7 @@ export async function callApi<T>(
   };
 
   // Allow body for all methods except GET and HEAD
-  if (method !== "GET" && method !== "HEAD") {
+  if (method !== "GET") {
     headers["Content-Type"] = "application/json";
     if (opts.body !== undefined) {
       init.body = JSON.stringify(opts.body);
