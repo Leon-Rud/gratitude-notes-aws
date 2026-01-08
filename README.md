@@ -23,6 +23,7 @@ Sign in with Google OAuth to start sharing your daily gratitude notes!
 - **Auto-archive** – Notes automatically cleared at 23:00 local time
 - **Event-driven observability** – Lifecycle events tracked via CloudWatch metrics
 - **Feedback system** – In-app feedback sent directly via email
+- **Security hardening** – Token protection, CORS restrictions, input validation
 
 ## 📸 Screenshots
 
@@ -88,8 +89,12 @@ _Real-time CloudWatch dashboard tracking note lifecycle events and system health
 ### Backend
 
 ```bash
-./scripts/deploy_backend.sh  # Deploys to eu-west-1, stack: daily-gratitude
+# Deploy with CORS configuration
+./scripts/deploy_backend.sh --parameter-overrides \
+  AllowedOrigin="https://gratitude-notes-aws.vercel.app"
 ```
+
+**Note:** For local development, use `AllowedOrigin="http://localhost:5173"`
 
 The script outputs `GratitudeApiBaseUrl` for frontend configuration.
 
@@ -110,12 +115,12 @@ VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 
 ## 📡 API Reference
 
-| Method   | Path                                      | Description                                                                                                                      |
-| -------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `POST`   | `/gratitude-notes`                        | Upsert note (body: `{name, email, gratitudeText}`). Returns 201 if created, 200 if updated. Enforces one note per day per email. |
-| `GET`    | `/gratitude-notes/today`                  | List all active notes for today. Returns `{items: [{id, name, gratitude_text, created_at}]}`                                     |
-| `DELETE` | `/gratitude-notes/{id}?token=OWNER_TOKEN` | Soft-delete note (sets `status=deleted`). Requires owner token from POST response.                                               |
-| `POST`   | `/feedback`                               | Send feedback email to developer (body: `{feedback}`). Requires SES sandbox verification.                                        |
+| Method   | Path                        | Description                                                                                                                      |
+| -------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `POST`   | `/gratitude-notes`          | Upsert note (body: `{name, email, gratitudeText}`). Returns 201 if created, 200 if updated. Enforces one note per day per email. |
+| `GET`    | `/gratitude-notes/today`    | List all active notes for today. Returns `{items: [{id, name, gratitude_text, created_at}]}`                                     |
+| `DELETE` | `/gratitude-notes/{id}`     | Soft-delete note (sets `status=deleted`). Requires owner token in request body: `{token}`.                                       |
+| `POST`   | `/feedback`                 | Send feedback email to developer (body: `{feedback}`). Requires SES sandbox verification.       |
 
 **Examples:**
 
@@ -128,8 +133,10 @@ curl -X POST "$API_BASE_URL/gratitude-notes" \
 # List today's notes
 curl "$API_BASE_URL/gratitude-notes/today"
 
-# Delete note
-curl -X DELETE "$API_BASE_URL/gratitude-notes/{id}?token={owner_token}"
+# Delete note (token in body, not URL)
+curl -X DELETE "$API_BASE_URL/gratitude-notes/{id}" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"{owner_token}"}'
 ```
 
 ## 🔄 Event-Driven Architecture
