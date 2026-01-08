@@ -5,6 +5,7 @@ from notes.db import create_or_update_note
 from shared.config import EVENT_BUS_NAME, events_client
 from shared.api_gateway import json_response, load_json_body
 from shared.logging import log_event
+import re
 
 EVENTS = events_client()
 
@@ -52,12 +53,24 @@ def _publish_note_event(note: dict, event_type: str) -> None:
 def handler(event: dict, _context: object) -> dict:
     """Create or update a gratitude note."""
     body = load_json_body(event)
-    
-    # Normalize payload: trim name/email, map gratitudeText to gratitude_text
+
+    # Extract and validate input
+    name = body.get("name", "").strip()
+    email = body.get("email", "").strip().lower()
+    gratitude_text = body.get("gratitudeText", "").strip()
+
+    # Validate required fields
+    if not name or not email or not gratitude_text:
+        return json_response(400, {"message": "Name, email, and gratitude text are required."})
+    # Basic email format check (simple regex)
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        return json_response(400, {"message": "Invalid email format."})
+
+    # Normalize payload
     normalized = {
-        "name": body["name"].strip(),
-        "email": body["email"].strip().lower(),
-        "gratitude_text": body["gratitudeText"],
+        "name": name,
+        "email": email,
+        "gratitude_text": gratitude_text,
     }
 
     now = datetime.now(timezone.utc)

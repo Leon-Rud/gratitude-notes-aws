@@ -34,7 +34,8 @@ export async function callApi<T>(
     signal: controller.signal,
   };
 
-  if (method !== "GET") {
+  // Allow body for all methods except GET and HEAD
+  if (method !== "GET" && method !== "HEAD") {
     headers["Content-Type"] = "application/json";
     if (opts.body !== undefined) {
       init.body = JSON.stringify(opts.body);

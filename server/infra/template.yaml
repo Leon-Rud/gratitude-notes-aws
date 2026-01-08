@@ -11,6 +11,10 @@ Parameters:
     Type: String
     Default: "Asia/Jerusalem"
     Description: IANA timezone for nightly deletion (e.g. "Europe/London", "Asia/Jerusalem"). Scheduler uses this to run at 23:00 local time.
+  AllowedOrigin:
+    Type: String
+    Default: "https://gratitude-notes-aws.vercel.app"
+    Description: CORS allowed origin (https://gratitude-notes-aws.vercel.app/ for production, http://localhost:5173 for dev)
 
 Globals:
   Function:
@@ -26,6 +30,7 @@ Globals:
         TOKEN_SECRET: !Sub ${AWS::StackName}-secret-key
         EVENT_BUS_NAME: default
         ARCHIVE_TIMEZONE: !Ref ArchiveTimeZone
+        ALLOWED_ORIGIN: !Ref AllowedOrigin
 
 Resources:
   GratitudeNotesTable:

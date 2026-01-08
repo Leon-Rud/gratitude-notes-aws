@@ -2,12 +2,17 @@
 HTTP helpers: CORS headers and JSON responses.
 """
 import json
+import os
 from typing import Any, Dict, Tuple
 
+# Get allowed origin from environment variable with fallback for local dev
+ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "http://localhost:5173")
+
 HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,  # Specific domain only
+    "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "OPTIONS,GET,PUT,POST,DELETE",
+    "Access-Control-Allow-Credentials": "true",  # Enable for future auth improvements
 }
 
 

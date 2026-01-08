@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from notes.db import get_note, mark_deleted
 from shared.config import EVENT_BUS_NAME, events_client
-from shared.api_gateway import extract_path_id, json_response
+from shared.api_gateway import extract_path_id, json_response, load_json_body
 from shared.logging import log_event
 
 EVENTS = events_client()
@@ -15,11 +15,12 @@ def handler(event: dict, _context: object) -> dict:
     if error:
         return json_response(400, {"message": error})
 
-    query_params = event.get("queryStringParameters") or {}
-    token = query_params.get("token")
+    # Extract token from request body instead of query parameters
+    body = load_json_body(event)
+    token = body.get("token", "").strip()
 
     if not token:
-        return json_response(400, {"message": "Query parameter 'token' is required."})
+        return json_response(400, {"message": "Token is required in request body."})
 
     try:
         item = get_note(note_id)

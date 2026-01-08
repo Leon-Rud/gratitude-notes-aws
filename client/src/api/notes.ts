@@ -64,11 +64,10 @@ export async function getTodayNotes(): Promise<TodayNotesResponse> {
 }
 
 export async function deleteNote(id: string, token: string) {
-  const params = new URLSearchParams();
-  params.append("token", token);
-
-  const path = `/gratitude-notes/${encodeURIComponent(id)}?${params.toString()}`;
-  const { data } = await callApi<{ deleted?: boolean }>(path, "DELETE");
+  const path = `/gratitude-notes/${encodeURIComponent(id)}`;
+  const { data } = await callApi<{ deleted?: boolean }>(path, "DELETE", {
+    body: { token },
+  });
   return data;
 }
 
